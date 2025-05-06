@@ -712,9 +712,9 @@ export default function Lesson2Screen() {
   // Handle the "Next" button press
   const handleNext = () => {
     if (isLastStep) {
-      // If this is the last step, mark the lesson as complete and return to main app
+      // If this is the last step, mark the lesson as complete and go to lesson3
       completeLesson(LESSON_ID);
-      router.replace("/(tabs)");
+      router.push("/tutorial/lesson3");
     } else {
       // Otherwise, go to the next step with animation
       setLeaving(true);
@@ -912,7 +912,7 @@ export default function Lesson2Screen() {
             >
               <Animated.View style={[styles.button, nextBtnStyle]}>
                 <Text style={styles.buttonText}>
-                  {isLastStep ? 'Complete Lesson' : 'Next'}
+                  {isLastStep ? 'Start Next Lesson' : 'Next'}
                 </Text>
               </Animated.View>
             </Pressable>
