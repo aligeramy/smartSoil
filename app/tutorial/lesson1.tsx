@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   RefreshControl,
   Animated as RNAnimated,
@@ -14,7 +15,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View,
+  View
 } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -296,6 +297,17 @@ export default function Lesson1Screen() {
       setCurrentStep(lesson1Steps.length - 1);
       setEspConnected(true); // Make sure we're marked as connected
     }
+    // Check if we should start at a specific step (coming from connection-steps)
+    else if (params.startAtStep) {
+      const stepIndex = parseInt(params.startAtStep as string, 10);
+      if (!isNaN(stepIndex) && stepIndex >= 0 && stepIndex < lesson1Steps.length) {
+        setCurrentStep(stepIndex);
+        // Mark as connected if going directly to a step that requires connection
+        if (stepIndex > 3) {
+          setEspConnected(true);
+        }
+      }
+    }
   }, []);
   
   // Update lesson progress when current step changes
@@ -472,14 +484,14 @@ export default function Lesson1Screen() {
             pressed && styles.cardPressed
           ]}
           onPress={() => {
-            // Show the connection help screen
-            setCurrentStep(1);
+            // Navigate to the connection help screen
+            router.push("/tutorial/connection-steps");
           }}
         >
-          <View style={[styles.cardInner, {opacity: 0.3}]}>
+          <View style={styles.cardInner}>
             <Image 
               source={require('@/assets/sections/lesson-1/1.png')} 
-              style={styles.cardImage} 
+              style={[styles.cardImage]} 
               resizeMode="contain"
             />
             <Text style={styles.cardTitle}>Help Me with Connection</Text>
@@ -531,7 +543,7 @@ export default function Lesson1Screen() {
             <View style={styles.sensorDetails}>
               <Text style={styles.sensorLabel}>DHT11 Temperature & Humidity</Text>
               <Text style={styles.sensorDescription}>
-                The DHT11 sensor measures air temperature and humidity around your plants.
+                The DHT11 sensor measures air temperature and humidity.
               </Text>
               <View style={styles.codeSnippet}>
                 <Text style={styles.codeComment}>// Define the DHT sensor</Text>
@@ -789,6 +801,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'android' ? 45 : 15, // Add extra padding on Android for status bar
   },
   navButton: {
     flexDirection: 'row',
@@ -867,7 +880,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 5,
+  
   },
   cardInner: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -883,9 +896,10 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: 150,
-    backgroundColor: 'rgba(255, 255, 255, 0.0)',
+    backgroundColor: 'transparent',
     padding: 5,
     marginTop: 15,
+    resizeMode: 'contain',
   },
   cardTitle: {
     fontSize: 18,
@@ -1057,7 +1071,7 @@ const styles = StyleSheet.create({
     color: '#88c0d0',
     fontSize: 10,
     fontFamily: 'Menlo',
-    marginBottom: 4,
+    marginBottom: 0,
 
   },
   codeLine: {

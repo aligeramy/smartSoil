@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -49,8 +50,8 @@ const lesson2Steps = [
     customComponent: true
   },
   {
-    title: 'Creating Dashboards',
-    description: 'A well designed dashboard can help you understand your plant\'s health and make informed decisions.',
+    title: 'Creating Farm Dashboards',
+    description: 'A well designed dashboard helps you monitor soil conditions across multiple field locations for better crop management.',
     customComponent: true
   },
 ];
@@ -637,16 +638,16 @@ const DashboardDesignComponent = () => {
       <View style={styles.dashboardWrapperContainer}>
         <View style={styles.dashboardContainer}>
           <View style={styles.dashboardHeader}>
-            <Text style={styles.dashboardTitle}>My Plants Dashboard</Text>
+            <Text style={styles.dashboardTitle}>My Coffee Farm</Text>
             <View style={styles.dashboardStats}>
-              <Text style={styles.dashboardStatText}>3 Plants • 2 Need Attention</Text>
+              <Text style={styles.dashboardStatText}>3 Field Locations • 2 Need Irrigation</Text>
             </View>
           </View>
           
           <View style={styles.plantsList}>
             <View style={styles.plantCard}>
               <View style={styles.plantCardHeader}>
-                <Text style={styles.plantName}>Fiddle Leaf Fig</Text>
+                <Text style={styles.plantName}>Field A - North</Text>
                 <View style={styles.statusContainer}>
                   <View style={[styles.statusIndicator, { backgroundColor: '#dc3545' }]} />
                   <Text style={styles.dashboardStatusText}>Needs Water</Text>
@@ -666,10 +667,10 @@ const DashboardDesignComponent = () => {
             
             <View style={styles.plantCard}>
               <View style={styles.plantCardHeader}>
-                <Text style={styles.plantName}>Monstera</Text>
+                <Text style={styles.plantName}>Field B - Hillside</Text>
                 <View style={styles.statusContainer}>
                   <View style={[styles.statusIndicator, { backgroundColor: '#28a745' }]} />
-                  <Text style={styles.dashboardStatusText}>Healthy</Text>
+                  <Text style={styles.dashboardStatusText}>Optimal</Text>
                 </View>
               </View>
               <View style={styles.plantCardBody}>
@@ -686,7 +687,7 @@ const DashboardDesignComponent = () => {
             
             <View style={styles.plantCard}>
               <View style={styles.plantCardHeader}>
-                <Text style={styles.plantName}>Peace Lily</Text>
+                <Text style={styles.plantName}>Field C - River Side</Text>
                 <View style={styles.statusContainer}>
                   <View style={[styles.statusIndicator, { backgroundColor: '#ffc107' }]} />
                   <Text style={styles.dashboardStatusText}>Check Soon</Text>
@@ -977,6 +978,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'android' ? 45 : 15, // Add extra padding on Android for status bar
   },
   navButton: {
     flexDirection: 'row',

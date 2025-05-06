@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  Platform,
   Pressable,
   RefreshControl,
   SafeAreaView,
@@ -539,6 +540,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    paddingTop: Platform.OS === 'android' ? 45 : 16,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -609,12 +611,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
-    borderLeftWidth: 4,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
     position: 'relative',
   },
   cardHeader: {
@@ -682,7 +683,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
   },
   infoOverlay: {
     position: 'absolute',

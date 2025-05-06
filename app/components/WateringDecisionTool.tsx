@@ -192,45 +192,6 @@ const WateringDecisionTool = () => {
         </View>
         
         <View style={styles.factorItem}>
-          <View style={styles.growthStageContainer}>
-            <View style={styles.sliderHeader}>
-              <Ionicons name="leaf-outline" size={18} color="#4CD964" />
-              <Text style={styles.sliderLabel}>Growth Stage (x2)</Text>
-              <Text style={styles.coefficientText}>Coefficient: -0.6112</Text>
-            </View>
-            
-            <View style={styles.growthStageSelector}>
-              <Pressable
-                style={[styles.stageButton, allValues.x2 === 1 && styles.stageButtonActive]}
-                onPress={() => onSliderChange('x2')(1)}
-              >
-                <Text style={[styles.stageButtonText, allValues.x2 === 1 && styles.stageButtonTextActive]}>
-                  Early (1)
-                </Text>
-              </Pressable>
-              
-              <Pressable
-                style={[styles.stageButton, allValues.x2 === 2 && styles.stageButtonActive]}
-                onPress={() => onSliderChange('x2')(2)}
-              >
-                <Text style={[styles.stageButtonText, allValues.x2 === 2 && styles.stageButtonTextActive]}>
-                  Vegetative (2)
-                </Text>
-              </Pressable>
-              
-              <Pressable
-                style={[styles.stageButton, allValues.x2 === 3 && styles.stageButtonActive]}
-                onPress={() => onSliderChange('x2')(3)}
-              >
-                <Text style={[styles.stageButtonText, allValues.x2 === 3 && styles.stageButtonTextActive]}>
-                  Reproductive (3)
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-        
-        <View style={styles.factorItem}>
           <FactorSlider
             icon={<Ionicons name="rainy-outline" size={18} color="#007AFF" />}
             label="Rainfall Rolling (x3)"
@@ -301,6 +262,46 @@ const WateringDecisionTool = () => {
             max={100}
           />
         </View>
+        
+        {/* Growth Stage Selector moved to bottom */}
+        <View style={styles.factorItem}>
+          <View style={styles.growthStageContainer}>
+            <View style={styles.sliderHeader}>
+              <Ionicons name="leaf-outline" size={18} color="#4CD964" />
+              <Text style={styles.sliderLabel}>Growth Stage (x2)</Text>
+              <Text style={styles.coefficientText}>Coefficient: -0.6112</Text>
+            </View>
+            
+            <View style={styles.growthStageSelector}>
+              <Pressable
+                style={[styles.stageButton, allValues.x2 === 1 && styles.stageButtonActive]}
+                onPress={() => onSliderChange('x2')(1)}
+              >
+                <Text style={[styles.stageButtonText, allValues.x2 === 1 && styles.stageButtonTextActive]}>
+                  Early (1)
+                </Text>
+              </Pressable>
+              
+              <Pressable
+                style={[styles.stageButton, allValues.x2 === 2 && styles.stageButtonActive]}
+                onPress={() => onSliderChange('x2')(2)}
+              >
+                <Text style={[styles.stageButtonText, allValues.x2 === 2 && styles.stageButtonTextActive]}>
+                  Vegetative (2)
+                </Text>
+              </Pressable>
+              
+              <Pressable
+                style={[styles.stageButton, allValues.x2 === 3 && styles.stageButtonActive]}
+                onPress={() => onSliderChange('x2')(3)}
+              >
+                <Text style={[styles.stageButtonText, allValues.x2 === 3 && styles.stageButtonTextActive]}>
+                  Reproductive (3)
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
       </View>
       
       {/* Formula Card */}
@@ -339,27 +340,38 @@ const styles = StyleSheet.create({
     minWidth: 350,
   },
   decisionCard: {
-    marginBottom: 12,
+    marginBottom: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   decisionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   decisionLabel: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: 'bold',
     color: 'white',
   },
   decisionValue: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   waterDecision: {
-    color: '#007AFF',
+    color: '#23C552',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   noWaterDecision: {
     color: '#FF3B30',
+    backgroundColor: 'rgba(255, 155, 155, 0.2)',
   },
   decisionDescription: {
     fontSize: 12,
@@ -372,7 +384,7 @@ const styles = StyleSheet.create({
   },
   factorItem: {
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 8,
     padding: 10,
   },
@@ -442,6 +454,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     width: '100%',
+    marginTop: 10,
   },
   formulaTitle: {
     fontSize: 16,
@@ -473,7 +486,7 @@ const styles = StyleSheet.create({
   waterText: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: '#23C552',
   },
   noWaterText: {
     fontSize: 12,

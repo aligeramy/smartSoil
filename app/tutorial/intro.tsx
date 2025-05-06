@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Image,
+    Platform,
     Pressable,
     SafeAreaView,
     StyleSheet,
@@ -302,6 +303,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'android' ? 45 : 15,
   },
   navButton: {
     flexDirection: 'row',

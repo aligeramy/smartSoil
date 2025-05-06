@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -409,7 +410,11 @@ const ModelFeatureGameComponent = () => {
                 {/* True Positive */}
                 <View style={[styles.matrixCell, styles.tpCell]}>
                   <Text style={styles.matrixValue}>
-                    {currentMetrics.confusionMatrix["True Positive"]}
+                    {Math.round((currentMetrics.confusionMatrix["True Positive"] / 
+                      (currentMetrics.confusionMatrix["True Positive"] + 
+                       currentMetrics.confusionMatrix["False Negative"] + 
+                       currentMetrics.confusionMatrix["False Positive"] + 
+                       currentMetrics.confusionMatrix["True Negative"])) * 100)}%
                   </Text>
                   <Text style={styles.matrixLabel}>True Positive</Text>
                 </View>
@@ -417,7 +422,11 @@ const ModelFeatureGameComponent = () => {
                 {/* False Negative */}
                 <View style={[styles.matrixCell, styles.fnCell]}>
                   <Text style={styles.matrixValue}>
-                    {currentMetrics.confusionMatrix["False Negative"]}
+                    {Math.round((currentMetrics.confusionMatrix["False Negative"] / 
+                      (currentMetrics.confusionMatrix["True Positive"] + 
+                       currentMetrics.confusionMatrix["False Negative"] + 
+                       currentMetrics.confusionMatrix["False Positive"] + 
+                       currentMetrics.confusionMatrix["True Negative"])) * 100)}%
                   </Text>
                   <Text style={styles.matrixLabel}>False Negative</Text>
                 </View>
@@ -425,7 +434,11 @@ const ModelFeatureGameComponent = () => {
                 {/* False Positive */}
                 <View style={[styles.matrixCell, styles.fpCell]}>
                   <Text style={styles.matrixValue}>
-                    {currentMetrics.confusionMatrix["False Positive"]}
+                    {Math.round((currentMetrics.confusionMatrix["False Positive"] / 
+                      (currentMetrics.confusionMatrix["True Positive"] + 
+                       currentMetrics.confusionMatrix["False Negative"] + 
+                       currentMetrics.confusionMatrix["False Positive"] + 
+                       currentMetrics.confusionMatrix["True Negative"])) * 100)}%
                   </Text>
                   <Text style={styles.matrixLabel}>False Positive</Text>
                 </View>
@@ -433,7 +446,11 @@ const ModelFeatureGameComponent = () => {
                 {/* True Negative */}
                 <View style={[styles.matrixCell, styles.tnCell]}>
                   <Text style={styles.matrixValue}>
-                    {currentMetrics.confusionMatrix["True Negative"]}
+                    {Math.round((currentMetrics.confusionMatrix["True Negative"] / 
+                      (currentMetrics.confusionMatrix["True Positive"] + 
+                       currentMetrics.confusionMatrix["False Negative"] + 
+                       currentMetrics.confusionMatrix["False Positive"] + 
+                       currentMetrics.confusionMatrix["True Negative"])) * 100)}%
                   </Text>
                   <Text style={styles.matrixLabel}>True Negative</Text>
                 </View>
@@ -792,6 +809,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'android' ? 45 : 15,
   },
   navButton: {
     flexDirection: 'row',
@@ -1670,7 +1688,9 @@ const styles = StyleSheet.create({
   summaryItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: 15,
+    marginTop: 5,
+    marginHorizontal: 6
   },
   summaryBullet: {
     width: 32,
@@ -1683,10 +1703,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   summaryText: {
-    fontSize: 15,
+    fontSize: 12,
     color: 'white',
     flex: 1,
-    lineHeight: 22,
   },
   completionFooter: {
     flexDirection: 'row',

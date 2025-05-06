@@ -21,6 +21,8 @@ export default function TutorialLayout() {
         <Stack.Screen name="intro" options={{ headerShown: false }} />
         <Stack.Screen name="lesson1" options={{ headerShown: false }} />
         <Stack.Screen name="lesson2" options={{ headerShown: false }} />
+        <Stack.Screen name="lesson3" options={{ headerShown: false }} />
+        <Stack.Screen name="connection-steps" options={{ headerShown: false }} />
       </Stack>
     </>
   );

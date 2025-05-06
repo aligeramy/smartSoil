@@ -1,7 +1,7 @@
 import Colors, { Colors as ColorPalette } from '@/constants/Colors';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Image, ImageBackground, Platform, Pressable, SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
@@ -70,7 +70,7 @@ export default function HomeScreen() {
                 style={styles.loginContainer}
                 onPress={() => router.push("/dashboard")}
               >
-                <Text style={styles.loginText}>Have an account? <Text style={styles.loginTextBold}>Login</Text></Text>
+                <Text style={styles.loginText}>Skip to <Text style={styles.loginTextBold}>Dashboard</Text></Text>
               </Pressable>
             </Animated.View>
           </View>
@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
     padding: 24,
     justifyContent: 'space-between',
     paddingVertical: 60,
+    paddingTop: Platform.OS === 'android' ? 45 : 60,
   },
   logoContainer: {
     alignItems: 'center',
@@ -157,6 +158,9 @@ const styles = StyleSheet.create({
   loginText: {
     color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 16,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
   },
   loginTextBold: {
     fontWeight: 'bold',
