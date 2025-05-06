@@ -257,7 +257,7 @@ export default function ESPDashboardScreen() {
                 <Ionicons name="chevron-back" size={24} color="white" />
               </Pressable>
               <Text style={styles.headerTitle}>ESP Dashboard</Text>
-              {connected && (
+              {connected && !demoMode && (
                 <View style={styles.liveIndicator}>
                   <Animated.View 
                     style={[
@@ -287,7 +287,7 @@ export default function ESPDashboardScreen() {
                 <View style={styles.connectionStatus}>
                   <View style={[styles.statusDot, { backgroundColor: '#dc3545' }]} />
                   <Text style={styles.statusText}>
-                    {demoMode ? 'Demo Mode' : 'Disconnected'}
+                    Disconnected
                   </Text>
                 </View>
               )}

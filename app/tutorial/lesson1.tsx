@@ -185,11 +185,6 @@ const ESPDataVisualizer = ({ onConnected, demoMode: initialDemoMode = false }: {
                 <Text style={styles.statusText}>Disconnected</Text>
               </View>
             )}
-            {demoMode && (
-              <View style={styles.demoModeTag}>
-                <Text style={styles.demoModeText}>DEMO</Text>
-              </View>
-            )}
           </View>
           
           {loading && rawAnalog === null ? (
@@ -430,7 +425,7 @@ export default function Lesson1Screen() {
             {headerContent}
             <ESPDataVisualizer 
               onConnected={() => setEspConnected(true)} 
-              demoMode={false}
+              demoMode={true}
             />
             <Pressable
               style={({pressed}) => [

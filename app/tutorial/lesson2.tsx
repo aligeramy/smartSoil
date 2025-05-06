@@ -50,7 +50,7 @@ const lesson2Steps = [
     customComponent: true
   },
   {
-    title: 'Creating Farm Dashboards',
+    title: 'Creating Dashboards',
     description: 'A well designed dashboard helps you monitor soil conditions across multiple field locations for better crop management.',
     customComponent: true
   },

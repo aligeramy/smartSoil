@@ -21,13 +21,22 @@
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
-      }
+      },
+      "resourceClass": "large"
     },
     "androidApk": {
       "extends": "production",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "resourceClass": "large"
+    },
+    "androidAab": {
+      "extends": "production",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "resourceClass": "large"
     }
   },
   "submit": {
