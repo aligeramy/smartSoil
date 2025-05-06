@@ -5,20 +5,20 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
+    Image,
+    Pressable,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeOut,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
+    FadeIn,
+    FadeInDown,
+    FadeOut,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
 } from 'react-native-reanimated';
 
 // Tutorial introduction content
@@ -116,7 +116,7 @@ export default function IntroScreen() {
     // Mark tutorial as skipped in context
     skipTutorial();
     // Navigate to main app
-    router.replace("/(tabs)");
+    router.replace("/tutorial/lesson1");
   };
 
   return (

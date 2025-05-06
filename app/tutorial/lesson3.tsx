@@ -22,6 +22,7 @@ import Animated, {
   useSharedValue,
   withTiming
 } from 'react-native-reanimated';
+import WateringDecisionTool from '../components/WateringDecisionTool';
 
 // Lesson 3 steps
 const lesson3Steps = [
@@ -31,18 +32,23 @@ const lesson3Steps = [
     customComponent: true
   },
   {
-    title: 'Future Data Collection',
-    description: 'Learn what would be possible if you collected data for 6+ months.',
-    customComponent: true
-  },
-  {
     title: 'ML Model Training',
     description: 'Understand how machine learning models are trained using sensor data.',
     customComponent: true
   },
   {
-    title: 'Feature Selection Game',
+    title: 'Feature Selection',
     description: 'Experiment with different features to see how they affect model performance.',
+    customComponent: true
+  },
+  {
+    title: 'Watering Decision',
+    description: 'Try an interactive ML model that recommends when to water your plants based on the weather and soil conditions.',
+    customComponent: true
+  },
+  {
+    title: 'Lesson Complete!',
+    description: 'You\'ve completed the machine learning journey for smart plant care.',
     customComponent: true
   }
 ];
@@ -50,7 +56,7 @@ const lesson3Steps = [
 // Lesson ID for tracking progress
 const LESSON_ID = 'lesson3';
 
-// First component - Introduction to ML in Smart Soil
+// First component - Introduction to ML in SmartSoil
 const MLIntroduction = () => {
   return (
     <View style={styles.lessonContent}>
@@ -89,108 +95,6 @@ const MLIntroduction = () => {
       </View>
       
    
-    </View>
-  );
-};
-
-// Second component - Future Data Collection
-const FutureDataComponent = () => {
-  return (
-    <View style={styles.lessonContent}>
-      <View style={styles.contentCard}>
-        <Text style={styles.cardSectionTitle}>Future Data Collection</Text>
-        <Text style={styles.contentText}>
-          If you were to collect data for a minimum of 6 months, a smart soil system could gather a wealth of information about your plants and environment:
-        </Text>
-        
-        <View style={styles.dataCollection}>
-          <View style={styles.dataItem}>
-            <View style={styles.dataIcon}>
-              <Ionicons name="calendar-outline" size={20} color="white" />
-            </View>
-            <Text style={styles.dataLabel}>6 Months of Data</Text>
-          </View>
-          
-          <View style={styles.dataItem}>
-            <View style={styles.dataIcon}>
-              <Ionicons name="leaf-outline" size={20} color="white" />
-            </View>
-            <Text style={styles.dataLabel}>Multiple Plants</Text>
-          </View>
-          
-          <View style={styles.dataItem}>
-            <View style={styles.dataIcon}>
-              <Ionicons name="sunny-outline" size={20} color="white" />
-            </View>
-            <Text style={styles.dataLabel}>Weather Changes</Text>
-          </View>
-        </View>
-      </View>
-      
-      <View style={styles.contentCard}>
-        
-        <View style={styles.forecastContainer}>
-          <View style={styles.forecastHeader}>
-            <Text style={styles.forecastTitle}>Example Prediction</Text>
-            <Text style={styles.forecastDate}>What could be possible with ML</Text>
-          </View>
-          
-          <View style={styles.sensorReadings}>
-            <View style={styles.readingItem}>
-              <Ionicons name="water-outline" size={18} color="#007AFF" />
-              <Text style={styles.readingLabel}>Moisture:</Text>
-              <Text style={styles.readingValue}>42%</Text>
-            </View>
-            
-            <View style={styles.readingItem}>
-              <Ionicons name="thermometer-outline" size={18} color="#FF9500" />
-              <Text style={styles.readingLabel}>Temperature:</Text>
-              <Text style={styles.readingValue}>28°C</Text>
-            </View>
-            
-            <View style={styles.readingItem}>
-              <Ionicons name="water" size={18} color="#5AC8FA" />
-              <Text style={styles.readingLabel}>Humidity:</Text>
-              <Text style={styles.readingValue}>35%</Text>
-            </View>
-          </View>
-          
-          <View style={styles.weatherForecast}>
-            <Text style={styles.forecastLabel}>Weather Forecast:</Text>
-            <View style={styles.weatherDays}>
-              <View style={styles.weatherDay}>
-                <Text style={styles.weatherDayName}>Today</Text>
-                <Ionicons name="sunny" size={24} color="#FF9500" />
-                <Text style={styles.weatherTemp}>28°C</Text>
-              </View>
-              
-              <View style={styles.weatherDay}>
-                <Text style={styles.weatherDayName}>Tomorrow</Text>
-                <Ionicons name="sunny" size={24} color="#FF9500" />
-                <Text style={styles.weatherTemp}>30°C</Text>
-              </View>
-              
-              <View style={styles.weatherDay}>
-                <Text style={styles.weatherDayName}>Wed</Text>
-                <Ionicons name="sunny" size={24} color="#FF9500" />
-                <Text style={styles.weatherTemp}>29°C</Text>
-              </View>
-            </View>
-          </View>
-          
-          <View style={styles.recommendationBox}>
-            <View style={styles.recommendationHeader}>
-              <Ionicons name="water" size={24} color="white" />
-              <Text style={styles.recommendationTitle}>Potential Recommendation</Text>
-            </View>
-            <Text style={styles.recommendationText}>
-              "Water your plants tomorrow morning." This type of recommendation would be possible
-              if data were collected for 6+ months. ML algorithms could analyze patterns and 
-              weather predictions to provide intelligent watering advice.
-            </Text>
-          </View>
-        </View>
-      </View>
     </View>
   );
 };
@@ -256,41 +160,7 @@ const MLModelTrainingComponent = () => {
         </View>
       </View>
       
-      <View style={styles.contentCard}>
-        <Text style={styles.cardSectionTitle}>Types of Plant Data</Text>
-        
-        <View style={styles.dataTypesContainer}>
-          <View style={styles.dataTypeItem}>
-            <View style={styles.dataTypeIcon}>
-              <Ionicons name="water-outline" size={24} color="#007AFF" />
-            </View>
-            <Text style={styles.dataTypeTitle}>Soil Moisture</Text>
-            <Text style={styles.dataTypeDescription}>
-              Changes in moisture levels after watering and during dry periods
-            </Text>
-          </View>
-          
-          <View style={styles.dataTypeItem}>
-            <View style={styles.dataTypeIcon}>
-              <Ionicons name="sunny-outline" size={24} color="#FF9500" />
-            </View>
-            <Text style={styles.dataTypeTitle}>Environment</Text>
-            <Text style={styles.dataTypeDescription}>
-              Temperature, humidity, light levels, and seasonal changes
-            </Text>
-          </View>
-          
-          <View style={styles.dataTypeItem}>
-            <View style={styles.dataTypeIcon}>
-              <Ionicons name="leaf-outline" size={24} color="#4CD964" />
-            </View>
-            <Text style={styles.dataTypeTitle}>Plant Response</Text>
-            <Text style={styles.dataTypeDescription}>
-              How plants thrive or struggle under different conditions
-            </Text>
-          </View>
-        </View>
-      </View>
+    
     </View>
   );
 };
@@ -585,6 +455,87 @@ const ModelFeatureGameComponent = () => {
   );
 };
 
+// Fifth component - Watering Decision Tool
+const WateringDecisionToolComponent = () => {
+  return (
+    <View style={styles.lessonContent}>
+      <WateringDecisionTool />
+    </View>
+  );
+};
+
+// Sixth component - Lesson Completion
+const LessonCompletionComponent = () => {
+  return (
+    <View style={styles.completionContainer}>
+      <View style={styles.completionHeader}>
+        <LinearGradient
+          colors={['rgba(35, 197, 82, 0.3)', 'rgba(35, 197, 82, 0.1)']}
+          style={styles.completionGradient}
+        >
+          <View style={styles.completionIconContainer}>
+            <Ionicons name="checkmark-circle" size={80} color="#23C552" />
+          </View>
+        </LinearGradient>
+        
+       </View>
+      
+      <View style={styles.completionCard}>
+        <Text style={styles.summaryTitle}>What You've Learned:</Text>
+        
+        <View style={styles.summaryItem}>
+          <View style={styles.summaryBullet}>
+            <Ionicons name="analytics-outline" size={20} color="white" />
+          </View>
+          <Text style={styles.summaryText}>
+            How machine learning models can predict optimal watering times
+          </Text>
+        </View>
+        
+        <View style={styles.summaryItem}>
+          <View style={styles.summaryBullet}>
+            <Ionicons name="flask-outline" size={20} color="white" />
+          </View>
+          <Text style={styles.summaryText}>
+            The importance of data collection and feature selection in ML
+          </Text>
+        </View>
+        
+        <View style={styles.summaryItem}>
+          <View style={styles.summaryBullet}>
+            <Ionicons name="leaf-outline" size={20} color="white" />
+          </View>
+          <Text style={styles.summaryText}>
+            How environmental factors combine to influence plant care decisions
+          </Text>
+        </View>
+        
+        <View style={styles.summaryItem}>
+          <View style={styles.summaryBullet}>
+            <Ionicons name="bulb-outline" size={20} color="white" />
+          </View>
+          <Text style={styles.summaryText}>
+            How to build intuition around ML model performance metrics
+          </Text>
+        </View>
+      </View>
+      
+      <View style={styles.completionFooter}>
+        <Image 
+          source={require('@/assets/images/logo/tx.png')} 
+          style={styles.appIcon}
+          resizeMode="contain"
+        />
+        <Text style={styles.appCredits}>
+          SmartSoil app by {"\n"}
+          <Text style={styles.companyName}>SofTx Innovations Inc</Text>
+        </Text>
+      </View>
+     
+    </View>
+  );
+};
+
 export default function Lesson3Screen() {
   const { updateLessonStep, completeLesson } = useTutorial();
   const [currentStep, setCurrentStep] = useState(0);
@@ -626,7 +577,7 @@ export default function Lesson3Screen() {
     if (isLastStep) {
       // If this is the last step, mark the lesson as complete and return to main app
       completeLesson(LESSON_ID);
-      router.replace("/(tabs)");
+      router.replace("/dashboard");
     } else {
       // Otherwise, go to the next step with animation
       setLeaving(true);
@@ -668,7 +619,7 @@ export default function Lesson3Screen() {
         stepContent = (
           <>
             {headerContent}
-            <FutureDataComponent />
+            <MLModelTrainingComponent />
           </>
         );
         break;
@@ -676,7 +627,7 @@ export default function Lesson3Screen() {
         stepContent = (
           <>
             {headerContent}
-            <MLModelTrainingComponent />
+            <ModelFeatureGameComponent />
           </>
         );
         break;
@@ -684,7 +635,15 @@ export default function Lesson3Screen() {
         stepContent = (
           <>
             {headerContent}
-            <ModelFeatureGameComponent />
+            <WateringDecisionToolComponent />
+          </>
+        );
+        break;
+      case 4:
+        stepContent = (
+          <>
+            {headerContent}
+            <LessonCompletionComponent />
           </>
         );
         break;
@@ -755,7 +714,7 @@ export default function Lesson3Screen() {
               onPress={() => {
                 // Just mark this lesson as complete and go to main app
                 completeLesson(LESSON_ID);
-                router.replace("/(tabs)");
+                router.replace("/dashboard");
               }}
             >
               <Animated.View style={[styles.navButton, skipBtnStyle]}>
@@ -944,7 +903,7 @@ const styles = StyleSheet.create({
   },
   contentCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 16,
     width: '100%',
     marginBottom: 15,
@@ -1490,5 +1449,334 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 12,
     marginTop: 4,
+  },
+  // Watering Decision Tool Styles
+  decisionCard: {
+    marginBottom: 12,
+  },
+  decisionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  decisionLabel: {
+    fontSize: 16,
+    color: 'white',
+  },
+  decisionValue: {
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  waterDecision: {
+    color: '#007AFF',
+  },
+  noWaterDecision: {
+    color: '#FF3B30',
+  },
+  decisionDescription: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  factorsGrid: {
+    marginBottom: 16,
+  },
+  factorItem: {
+    marginBottom: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+    padding: 10,
+    width: '100%',
+    minWidth: 350,
+  },
+  sliderContainer: {
+    paddingVertical: 4,
+  },
+  sliderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  sliderLabel: {
+    fontSize: 14,
+    color: 'white',
+    marginLeft: 8,
+    marginRight: 4,
+  },
+  coefficientText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+  },
+  sliderTrack: {
+    width: '100%',
+    height: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 5,
+    marginVertical: 12,
+    position: 'relative',
+  },
+  sliderFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    height: '100%',
+    backgroundColor: '#007AFF',
+    borderRadius: 5,
+  },
+  sliderThumb: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#007AFF',
+    borderWidth: 2,
+    top: -7, // Center the thumb on the track
+    marginLeft: -12, // Half the width to center horizontally
+  },
+  sliderFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sliderMinMax: {
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.5)',
+  },
+  sliderValue: {
+    fontSize: 14,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  growthStageContainer: {
+    paddingVertical: 4,
+  },
+  growthStageSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 8,
+  },
+  stageButton: {
+    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 4,
+    marginHorizontal: 2,
+    alignItems: 'center',
+  },
+  stageButtonActive: {
+    backgroundColor: 'rgba(76, 217, 100, 0.3)',
+  },
+  stageButtonText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  stageButtonTextActive: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  formulaCard: {
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  formulaTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 8,
+  },
+  formulaText: {
+    fontSize: 12,
+    color: 'white',
+    fontFamily: 'monospace',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  formulaDescription: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 8,
+  },
+  formulaResult: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  formulaResultText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  waterText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#007AFF',
+  },
+  noWaterText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#FF3B30',
+  },
+  
+  // Lesson Completion Styles
+  completionContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  completionHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  completionGradient: {
+    borderRadius: 60,
+    padding: 10,
+    marginBottom: 16,
+  },
+  completionIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  completionTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 8,
+  },
+  completionSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+  },
+  completionCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    width: '100%',
+    marginBottom: 20,
+    minWidth: 300,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 12,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  summaryBullet: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(35, 197, 82, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  summaryText: {
+    fontSize: 15,
+    color: 'white',
+    flex: 1,
+    lineHeight: 22,
+  },
+  completionFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  appIcon: {
+    width: 40,
+    height: 40,
+    marginRight: 12,
+  },
+  appCredits: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'left',
+    marginTop: -5,
+  },
+  companyName: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  sensorMockup: {
+    width: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  mockupHeader: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    padding: 12,
+  },
+  mockupTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },
+  mockupContent: {
+    padding: 16,
+  },
+  mockupReadings: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  mockupReading: {
+    alignItems: 'center',
+  },
+  mockupLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginTop: 4,
+  },
+  mockupValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  mockupPrediction: {
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 8,
+    padding: 12,
+  },
+  predictionLabel: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  predictionValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#23C552',
+    marginVertical: 4,
+  },
+  predictionBar: {
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 4,
+    marginVertical: 8,
+    overflow: 'hidden',
+  },
+  predictionFill: {
+    width: '65%',
+    height: '100%',
+    backgroundColor: '#23C552',
+    borderRadius: 4,
+  },
+  predictionDetails: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'right',
   },
 }); 

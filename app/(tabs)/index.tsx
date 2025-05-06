@@ -66,7 +66,10 @@ export default function HomeScreen() {
                 <Text style={styles.buttonText}>Get Started</Text>
               </Pressable>
               
-              <Pressable style={styles.loginContainer}>
+              <Pressable 
+                style={styles.loginContainer}
+                onPress={() => router.push("/dashboard")}
+              >
                 <Text style={styles.loginText}>Have an account? <Text style={styles.loginTextBold}>Login</Text></Text>
               </Pressable>
             </Animated.View>

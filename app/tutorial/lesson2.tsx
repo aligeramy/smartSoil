@@ -81,7 +81,20 @@ const DataVisualizationIntro = () => {
   // Fetch data from ESP8266
   const fetchESPData = async () => {
     if (demoMode) {
-      return; // In demo mode, just use the mock data
+      // In demo mode, simulate small data changes
+      const moistureVar = Math.floor(Math.random() * 10) - 5;
+      const tempVar = (Math.random() * 1.5 - 0.75).toFixed(1);
+      const humVar = (Math.random() * 3 - 1.5).toFixed(1);
+      
+      setSensorData(prev => ({
+        moisture: Math.max(20, Math.min(80, prev.moisture + moistureVar)),
+        temperature: Math.max(18, Math.min(30, prev.temperature + parseFloat(tempVar))),
+        humidity: Math.max(40, Math.min(85, prev.humidity + parseFloat(humVar))),
+        heatIndex: prev.temperature + 1.5,
+        rawAnalog: Math.round(mapValue(prev.moisture + moistureVar, 0, 100, 1023, 300))
+      }));
+      setLastUpdated(new Date().toLocaleTimeString());
+      return;
     }
     
     try {
@@ -126,6 +139,7 @@ const DataVisualizationIntro = () => {
       // If first attempt fails, switch to demo mode silently
       if (!connected && !demoMode) {
         setDemoMode(true);
+        setLastUpdated(new Date().toLocaleTimeString());
       }
     }
   };
@@ -152,7 +166,16 @@ const DataVisualizationIntro = () => {
               <View style={[styles.statusDot, { backgroundColor: '#28a745' }]} />
               <Text style={styles.statusText}>Connected</Text>
             </View>
-          ) : null}
+          ) : (
+            <View style={styles.connectionStatus}>
+              <Text style={styles.statusText}>Demo Mode</Text>
+            </View>
+          )}
+          {demoMode && (
+            <View style={styles.demoModeTag}>
+              <Text style={styles.demoModeText}>DEMO</Text>
+            </View>
+          )}
         </View>
         
         <View style={styles.dataDisplay}>
@@ -167,6 +190,11 @@ const DataVisualizationIntro = () => {
               ]}>
                 {sensorData.moisture}%
               </Text>
+              {demoMode && (
+                <View style={styles.demoIndicator}>
+                  <Text style={styles.demoIndicatorText}>DEMO</Text>
+                </View>
+              )}
             </View>
             <Text style={styles.gaugeLabel}>Soil Moisture</Text>
           </View>
@@ -204,11 +232,12 @@ const DataVisualizationIntro = () => {
           </View>
         </View>
         
-        {connected && (
-          <View style={styles.lastUpdatedContainer}>
-            <Text style={styles.lastUpdatedText}>Last updated: {lastUpdated}</Text>
-          </View>
-        )}
+        <View style={styles.lastUpdatedContainer}>
+          <Text style={styles.lastUpdatedText}>
+            Last updated: {lastUpdated || 'Never'}
+            {demoMode && ' (Demo Mode)'}
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -316,7 +345,7 @@ const MoistureMappingComponent = () => {
         setLastUpdated(new Date().toLocaleTimeString());
       }
     } catch (error) {
-      console.log("ESP fetch error:", error);
+      console.log("ESP connection not available, using demo mode");
       // If first attempt fails, switch to demo mode silently
       if (!connected && !demoMode) {
         setDemoMode(true);
@@ -365,7 +394,6 @@ const MoistureMappingComponent = () => {
         <View style={styles.codeSnippet}>
           <Text style={styles.codeComment}>// Converting raw analog value to moisture percentage</Text>
           <Text style={styles.codeLine}>const moisture = mapValue(rawAnalog, 1023, 300, 0, 100);</Text>
-          <Text style={styles.codeComment}>// 1023 (dry) maps to 0%, 300 (wet) maps to 100%</Text>
         </View>
       </View>
       
@@ -373,15 +401,19 @@ const MoistureMappingComponent = () => {
         <Text style={[styles.cardSectionTitle, {marginTop: 0}]}>Simple Equation</Text>
         
         <View style={styles.simpleEquationContainer}>
-          {connected && (
-            <View style={styles.connectionStatusRow}>
+          <View style={styles.connectionStatusRow}>
+            {connected ? (
               <View style={styles.connectedStatus}>
                 <View style={styles.statusDot} />
                 <Text style={styles.statusText}>Connected to ESP</Text>
-                <Text style={styles.updateTime}>Last update: {lastUpdated}</Text>
               </View>
-            </View>
-          )}
+            ) : (
+              <View style={styles.mockStatus}>
+                <View style={[styles.statusDot, { backgroundColor: '#ffc107' }]} />
+                <Text style={styles.statusText}>Demo Mode</Text>
+              </View>
+            )}
+          </View>
           
           <View style={styles.equationRow}>
             <Text style={styles.equationPart}>(1023 - {mockValue})</Text>
@@ -391,6 +423,11 @@ const MoistureMappingComponent = () => {
             <Text style={styles.equationPart}>100</Text>
             <Text style={styles.equationOperator}> = </Text>
             <Text style={[styles.equationResult, {color: getMoistureColor(simplePercentage)}]}>{simplePercentage}%</Text>
+            {demoMode && (
+              <View style={styles.miniDemoTag}>
+                <Text style={styles.miniDemoText}>Demo</Text>
+              </View>
+            )}
           </View>
           
           <Text style={styles.equationExplanation}>
@@ -862,7 +899,7 @@ export default function Lesson2Screen() {
               onPress={() => {
                 // Just mark this lesson as complete and go to main app
                 completeLesson(LESSON_ID);
-                router.replace("/(tabs)");
+                router.replace("/tutorial/lesson3");
               }}
             >
               <Animated.View style={[styles.navButton, skipBtnStyle]}>
@@ -1126,6 +1163,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'white',
     fontWeight: '500',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   dataDisplay: {
     flexDirection: 'row',
@@ -1792,6 +1833,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   mockStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'rgba(255, 193, 7, 0.2)',
     padding: 8,
     borderRadius: 5,
@@ -1822,5 +1865,44 @@ const styles = StyleSheet.create({
   lastUpdatedText: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.6)',
+  },
+  demoModeTag: {
+    backgroundColor: 'rgba(255, 193, 7, 0.2)',
+    padding: 4,
+    borderRadius: 4,
+    marginLeft: 10,
+  },
+  demoModeText: {
+    fontSize: 12,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  demoIndicator: {
+    position: 'absolute',
+    bottom: -5,
+    backgroundColor: 'rgba(255, 193, 7, 0.7)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  demoIndicatorText: {
+    fontSize: 9,
+    color: 'rgba(0, 0, 0, 0.7)',
+    fontWeight: 'bold',
+  },
+  miniDemoTag: {
+    backgroundColor: 'rgba(255, 193, 7, 0.5)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 6,
+    alignSelf: 'center',
+  },
+  miniDemoText: {
+    fontSize: 10,
+    color: 'rgba(0, 0, 0, 0.7)',
+    fontWeight: 'bold',
   },
 }); 

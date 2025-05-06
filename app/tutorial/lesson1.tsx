@@ -63,7 +63,7 @@ function mapValue(x: number, in_min: number, in_max: number, out_min: number, ou
 }
 
 // Update the ESPDataVisualizer to show raw data in simple, smaller cards
-const ESPDataVisualizer = ({ onConnected }: { onConnected: () => void }) => {
+const ESPDataVisualizer = ({ onConnected, demoMode: initialDemoMode = false }: { onConnected: () => void, demoMode?: boolean }) => {
   const [rawAnalog, setRawAnalog] = useState<number | null>(null);
   const [rawHumidity, setRawHumidity] = useState<string | null>(null);
   const [rawTemperature, setRawTemperature] = useState<string | null>(null);
@@ -71,6 +71,7 @@ const ESPDataVisualizer = ({ onConnected }: { onConnected: () => void }) => {
   const [lastUpdated, setLastUpdated] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
+  const [demoMode, setDemoMode] = useState(initialDemoMode);
   
   // Animation values
   const fadeAnim = React.useRef(new RNAnimated.Value(1)).current;
@@ -126,14 +127,16 @@ const ESPDataVisualizer = ({ onConnected }: { onConnected: () => void }) => {
       setRawAnalog(rawAnalogValue);
       setLastUpdated(new Date().toLocaleTimeString());
       setConnectionError(false);
+      setDemoMode(false);
       
       // Notify that we successfully connected
       if (loading) {
         onConnected();
       }
     } catch (error) {
-      console.error("ESP fetch error:", error);
+      console.log("ESP connection not available, using demo mode");
       setConnectionError(true);
+      setDemoMode(true);
       if (rawAnalog === null) {
         // Set some mock data for display when not connected
         setRawAnalog(642);
@@ -179,6 +182,11 @@ const ESPDataVisualizer = ({ onConnected }: { onConnected: () => void }) => {
               <View style={styles.connectionStatus}>
                 <View style={[styles.statusDot, { backgroundColor: '#dc3545' }]} />
                 <Text style={styles.statusText}>Disconnected</Text>
+              </View>
+            )}
+            {demoMode && (
+              <View style={styles.demoModeTag}>
+                <Text style={styles.demoModeText}>DEMO</Text>
               </View>
             )}
           </View>
@@ -259,7 +267,7 @@ const SimplifiedLastStep = ({ onNextPress }: { onNextPress: () => void }) => {
           <Text style={styles.keyLearningsTitle}>Next Steps</Text>
           <View style={styles.learningItem}>
             <View style={styles.bulletPoint} />
-            <Text style={styles.learningText}>Soil moisture measurement and interpretation</Text>
+            <Text style={styles.learningText}>Soil moisture measurement and Analysis</Text>
           </View>
           <View style={styles.learningItem}>
             <View style={styles.bulletPoint} />
@@ -410,6 +418,7 @@ export default function Lesson1Screen() {
             {headerContent}
             <ESPDataVisualizer 
               onConnected={() => setEspConnected(true)} 
+              demoMode={false}
             />
             <Pressable
               style={({pressed}) => [
@@ -417,8 +426,9 @@ export default function Lesson1Screen() {
                 pressed && styles.buttonPressed
               ]}
               onPress={() => {
-                // Skip to the final step
-                skipConnectionStep();
+                // Just mark this lesson as complete and go to main app
+                completeLesson(LESSON_ID);
+                router.replace("/tutorial/lesson2");
               }}
             >
               <Text style={styles.skipConnectionText}>Having trouble connecting? Skip</Text>
@@ -466,7 +476,7 @@ export default function Lesson1Screen() {
             setCurrentStep(1);
           }}
         >
-          <View style={styles.cardInner}>
+          <View style={[styles.cardInner, {opacity: 0.3}]}>
             <Image 
               source={require('@/assets/sections/lesson-1/1.png')} 
               style={styles.cardImage} 
@@ -1644,7 +1654,7 @@ const styles = StyleSheet.create({
   keyLearningsContainer: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
     borderRadius: 12,
     padding: 20,
   },
@@ -1723,5 +1733,17 @@ const styles = StyleSheet.create({
   rawDataUnit: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.6)',
+  },
+  demoModeTag: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginLeft: 10,
+  },
+  demoModeText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 }); 
