@@ -22,7 +22,11 @@
         "light": "./assets/images/ios/ios-light.png",
         "dark": "./assets/images/ios/ios-dark.png"
       },
-      "userInterfaceStyle": "automatic"
+      "userInterfaceStyle": "automatic",
+      "bundleIdentifier": "com.softxinnovations.smartsoil",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -30,10 +34,35 @@
         "backgroundColor": "#063B1D"
       },
       "edgeToEdgeEnabled": true,
+      "navigationBarColor": "#063B1D",
+      "softwareKeyboardLayoutMode": "pan",
+      "allowBackup": true,
+      "permissions": [
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_WIFI_STATE",
+        "INTERNET"
+      ],
       "statusBar": {
         "backgroundColor": "#063B1D",
-        "barStyle": "light-content"
-      }
+        "barStyle": "light-content",
+        "translucent": false
+      },
+      "package": "com.softxinnovations.smartsoil",
+      "versionCode": 1,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "smartsoil"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -54,6 +83,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "334467c2-f1d5-4a0e-b474-061f1ab4d9c9"
+      }
     }
   }
 }

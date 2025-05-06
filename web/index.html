@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartSoil</title>
+  <!-- Load all icon fonts for react-native-vector-icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/MaterialIcons.ttf" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/MaterialCommunityIcons.ttf" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/Ionicons.ttf" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/FontAwesome.ttf" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/FontAwesome5_Solid.ttf" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/FontAwesome5_Regular.ttf" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/FontAwesome5_Brands.ttf" rel="stylesheet">
+  <style>
+    /* Make sure app takes full height of viewport */
+    html, body, #root {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    /* Global scrolling styles */
+    .scrollable-content {
+      -webkit-overflow-scrolling: touch;
+      overflow-y: auto;
+      height: 100%;
+    }
+    
+    /* Fix for WateringDecisionTool */
+    .watering-decision-container {
+      overflow-y: auto;
+      max-height: 100vh;
+      padding-bottom: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html> 

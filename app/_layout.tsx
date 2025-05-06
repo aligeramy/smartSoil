@@ -1,69 +1,141 @@
 import { TutorialProvider } from '@/app/context/TutorialContext';
-import Colors from '@/constants/Colors';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { ThemeProvider } from '@/components/ui/theme';
+import { AppPermissions, isAndroid, requestMultiplePermissions } from '@/lib/androidPermissions';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { SplashScreen, Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import 'react-native-reanimated';
+import { Platform, StatusBar, useColorScheme } from 'react-native';
+
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
+
+// Function to load icon fonts for web
+const loadWebIconFonts = () => {
+  if (Platform.OS !== 'web') return;
+  
+  // List of icon font CSS URLs
+  const iconFontUrls = [
+    'https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/Ionicons.css',
+    'https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/MaterialIcons.css',
+    'https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/MaterialCommunityIcons.css',
+    'https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/FontAwesome.css',
+    'https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/FontAwesome5_Brands.css',
+    'https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/FontAwesome5_Regular.css',
+    'https://cdn.jsdelivr.net/npm/@expo/vector-icons@latest/FontAwesome5_Solid.css',
+  ];
+  
+  // Add font CSS to document head
+  iconFontUrls.forEach(url => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    document.head.appendChild(link);
+  });
+  
+  // Add global scrolling styles for web
+  const style = document.createElement('style');
+  style.textContent = `
+    /* Global scrolling styles */
+    .scrollable-content {
+      -webkit-overflow-scrolling: touch;
+      overflow-y: auto;
+      height: 100%;
+    }
+    
+    /* Fix for WateringDecisionTool */
+    .watering-decision-container {
+      overflow-y: auto;
+      max-height: 80vh;
+      padding-bottom: 50px;
+    }
+  `;
+  document.head.appendChild(style);
+};
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require('@/assets/fonts/SpaceMono-Regular.ttf'),
+    ...FontAwesome.font,
   });
 
+  // Load web icon fonts
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      try {
+        loadWebIconFonts();
+      } catch (error) {
+        console.error('Error loading web icon fonts:', error);
+      }
+    }
+  }, []);
+
+  // Check Android permissions on first launch
+  useEffect(() => {
+    if (isAndroid) {
+      const checkAndroidPermissions = async () => {
+        await requestMultiplePermissions([
+          AppPermissions.INTERNET,
+          AppPermissions.NETWORK_STATE,
+          AppPermissions.WIFI_STATE
+        ]);
+      };
+      
+      checkAndroidPermissions();
+    }
+  }, []);
+
+  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
+
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
 
   if (!loaded) {
     return null;
   }
 
-  // Create custom themes using our color palette
-  const customLightTheme = {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      primary: Colors.light.primary,
-      background: Colors.light.background,
-      card: Colors.light.card,
-      text: Colors.light.text,
-      border: Colors.light.border,
-    },
-  };
+  return <RootLayoutNav />;
+}
 
-  const customDarkTheme = {
-    ...DarkTheme,
-    colors: {
-      ...DarkTheme.colors,
-      primary: Colors.dark.primary,
-      background: Colors.dark.background,
-      card: Colors.dark.card,
-      text: Colors.dark.text,
-      border: Colors.dark.border,
-    },
-  };
+function RootLayoutNav() {
+  const colorScheme = useColorScheme();
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? customDarkTheme : customLightTheme}>
-        <TutorialProvider>
-          <Stack 
+    <ThemeProvider>
+      <TutorialProvider>
+        <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <StatusBar 
+            barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} 
+            backgroundColor={isAndroid ? '#063B1D' : 'transparent'}
+            translucent={Platform.OS === 'ios'}
+          />
+          <Stack
             screenOptions={{
-              headerShown: false, // Hide header globally
+              headerShown: false,
+              animation: 'slide_from_right',
+              animationDuration: 250,
+              // iOS modal presentation style
+              presentation: Platform.OS === 'ios' ? 'card' : undefined,
+              // Android navigator bar color
+              navigationBarColor: isAndroid ? '#063B1D' : undefined,
             }}
           >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="tutorial" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" options={{ title: 'Not Found', headerShown: true }} />
+            <Stack.Screen name="index" />
+            <Stack.Screen name="dashboard" />
+            <Stack.Screen name="tutorial/intro" />
+            <Stack.Screen name="tutorial/lesson1" />
+            <Stack.Screen name="tutorial/lesson2" />
+            <Stack.Screen name="tutorial/lesson3" />
           </Stack>
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        </TutorialProvider>
-      </ThemeProvider>
-    </GestureHandlerRootView>
+        </NavigationThemeProvider>
+      </TutorialProvider>
+    </ThemeProvider>
   );
 }

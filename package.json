@@ -8,7 +8,15 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build:android-dev": "node ./scripts/android-build.js dev",
+    "build:android-preview": "node ./scripts/android-build.js preview",
+    "build:android-apk": "node ./scripts/android-build.js apk",
+    "build:android-aab": "node ./scripts/android-build.js aab",
+    "build:android": "npm run build:android-apk",
+    "build:web": "npx expo export --platform web",
+    "serve:web": "npx serve web-build",
+    "deploy:web": "npx vercel web-build --confirm"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -38,14 +46,18 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.10.0",
     "react-native-web": "~0.20.0",
-    "react-native-webview": "13.13.5"
+    "react-native-webview": "13.13.5",
+    "expo-dev-client": "~5.1.8"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.0.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
-    "typescript": "~5.8.3"
+    "file-loader": "^6.2.0",
+    "serve": "^14.2.1",
+    "typescript": "~5.8.3",
+    "url-loader": "^4.1.1"
   },
   "private": true
 }
