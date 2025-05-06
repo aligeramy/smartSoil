@@ -4,17 +4,20 @@
     "slug": "smart-soil",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "smartsoil",
-    "userInterfaceStyle": "automatic",
+    "icon": "./assets/images/logo/icon/icon.png",
+    "scheme": "smart-soil",
+    "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/logo/icon/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#013B1A"
+      "backgroundColor": "#063B1D"
     },
     "newArchEnabled": true,
-    "primaryColor": "#34C759",
+    "primaryColor": "#063B1D",
     "backgroundColor": "#F5F5F7",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/images/ios/ios-tinted.png",
@@ -24,13 +27,20 @@
       },
       "userInterfaceStyle": "automatic",
       "bundleIdentifier": "com.softxinnovations.smartsoil",
+      "buildNumber": "1.0.0",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSBluetoothAlwaysUsageDescription": "This app uses Bluetooth to connect to nearby soil moisture sensors.",
+        "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to connect to nearby soil moisture sensors.",
+        "NSLocalNetworkUsageDescription": "This app uses your local network to discover and connect to ESP8266 soil moisture sensors."
+      },
+      "associatedDomains": [
+        "applinks:smartsoil-app.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/logo/icon/adaptive-icon.png",
         "backgroundColor": "#063B1D"
       },
       "edgeToEdgeEnabled": true,
@@ -40,7 +50,9 @@
       "permissions": [
         "ACCESS_NETWORK_STATE",
         "ACCESS_WIFI_STATE",
-        "INTERNET"
+        "CHANGE_WIFI_STATE",
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN"
       ],
       "statusBar": {
         "backgroundColor": "#063B1D",
@@ -48,7 +60,7 @@
         "translucent": false
       },
       "package": "com.softxinnovations.smartsoil",
-      "versionCode": 1,
+      "versionCode": 20,
       "intentFilters": [
         {
           "action": "VIEW",
@@ -67,7 +79,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/logo/icon/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -84,11 +96,49 @@
     "experiments": {
       "typedRoutes": true
     },
+    "privacy": "unlisted",
+    "description": "SmartSoil is an IoT application that helps gardeners and plant enthusiasts monitor soil moisture, temperature, and humidity using ESP8266-based sensors. Get real-time data, view historical trends, and receive watering recommendations for healthier plants.",
+    "githubUrl": "https://github.com/yourusername/smartsoil",
+    "owner": "softxinnovations",
     "extra": {
-      "router": {},
+      "router": {
+        "origin": false
+      },
       "eas": {
-        "projectId": "334467c2-f1d5-4a0e-b474-061f1ab4d9c9"
+        "projectId": "your-eas-project-id"
       }
-    }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/your-eas-project-id"
+    },
+    "locales": {
+      "en": "./locales/en.json"
+    },
+    "developmentClient": {
+      "silentLaunch": false
+    },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "softxinnovations",
+            "project": "smartsoil"
+          }
+        }
+      ]
+    },
+    "notification": {
+      "icon": "./assets/images/logo/icon/notification-icon.png",
+      "color": "#063B1D",
+      "iosDisplayInForeground": true
+    },
+    "appStoreUrl": "https://apps.apple.com/app/smartsoil/id1234567890",
+    "playStoreUrl": "https://play.google.com/store/apps/details?id=com.softxinnovations.smartsoil",
+    "privacyPolicyUrl": "https://www.smartsoil-app.com/privacy",
+    "termsOfServiceUrl": "https://www.smartsoil-app.com/terms"
   }
 }

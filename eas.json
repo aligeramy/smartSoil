@@ -31,6 +31,21 @@
       },
       "resourceClass": "large"
     },
+    "optimizedApk": {
+      "extends": "androidApk",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "autoIncrement": true
+      },
+      "env": {
+        "APP_VARIANT": "release"
+      },
+      "resourceClass": "large",
+      "cache": {
+        "key": "optimized-v1"
+      }
+    },
     "androidAab": {
       "extends": "production",
       "android": {
