@@ -1,51 +1,109 @@
-# Welcome to your Expo app 👋
+# SmartSoil - IoT Plant Monitoring App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+![SmartSoil Logo](assets/images/logo/icon/icon.png)
 
-## Get started
+## Overview
 
-1. Install dependencies
+SmartSoil is a mobile application designed to connect with an ESP8266-based soil moisture sensor system to help users monitor and optimize plant care. The app provides real-time data on soil moisture, temperature, and humidity to ensure your plants receive the perfect amount of water and ideal growing conditions.
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+- **Real-time Sensor Data**: Monitor soil moisture, air temperature, and humidity levels directly from your IoT devices
+- **Interactive Dashboard**: Easy-to-read visual displays of all key plant health metrics
+- **Trend Analysis**: Track changes in growing conditions over time with historical data charts
+- **Guided Setup**: Step-by-step tutorial to help you connect your ESP8266 soil monitoring hardware
+- **Plant Care Guidance**: Recommendations based on soil moisture levels for various plant types
 
-   ```bash
-   npx expo start
-   ```
+## Technical Requirements
 
-In the output, you'll find options to open the app in a
+- iOS 14.0 or higher
+- Android 9.0 (API level 28) or higher
+- ESP8266 hardware module with soil moisture, temperature, and humidity sensors
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Getting Started
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+1. **Hardware Setup**: Follow the in-app tutorial to set up your ESP8266 soil moisture monitoring device
+2. **Connect to the Device**: Join the WiFi network created by your ESP module
+3. **Access Data**: View real-time readings and historical trends on the dashboard
 
-## Get a fresh project
+## For Developers
 
-When you're ready, run:
+### Installation
 
 ```bash
-npm run reset-project
+# Clone the repository
+git clone https://github.com/yourusername/smartsoil.git
+
+# Install dependencies
+cd smartsoil
+npm install
+
+# Start the development server
+npm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Building the App
 
-## Learn more
+```bash
+# Build for Android
+npx eas build --platform android --profile androidApk
 
-To learn more about developing your project with Expo, look at the following resources:
+# Build for iOS
+npx eas build --platform ios --profile production
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Submitting to App Stores
 
-## Join the community
+```bash
+# Submit to Google Play Store
+npx eas submit --platform android --profile production
 
-Join our community of developers creating universal apps.
+# Submit to Apple App Store
+npx eas submit --platform ios --profile production
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-# smartSoil
+## App Store Submission Checklist
+
+### Google Play Store
+
+- [x] App Bundle (AAB) created with `npx eas build --platform android --profile androidAab`
+- [ ] Privacy Policy URL added to app listing
+- [ ] Data safety form completed
+- [ ] App content rated
+- [ ] Store listing details (description, screenshots, promo graphics)
+- [ ] Contact information updated
+- [ ] App signing configured
+
+### Apple App Store
+
+- [ ] App binary built with `npx eas build --platform ios --profile production`
+- [ ] App Store Connect listing complete
+- [ ] Privacy policy URL added
+- [ ] App privacy details provided
+- [ ] Screenshots for all required device sizes
+- [ ] App Review Information supplied
+- [ ] Export compliance documentation
+
+## GDPR and Data Privacy Compliance
+
+SmartSoil is designed with privacy in mind:
+
+- No personal data is stored in the cloud
+- Sensor data remains on the local device
+- No tracking or analytics beyond basic app functionality
+- No third-party data sharing
+- User has full control to delete any stored information
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support, please contact support@smartsoil-app.com or visit our website at https://www.smartsoil-app.com/support
+
+## Acknowledgments
+
+- Built with React Native and Expo
+- ESP8266 firmware based on Arduino
+- Icons provided by Ionicons
