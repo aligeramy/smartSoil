@@ -1,75 +1,201 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import Colors, { Colors as ColorPalette } from '@/constants/Colors';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import Animated, { Easing, FadeIn, FadeInDown, FadeInUp, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 
 export default function HomeScreen() {
+  const colorScheme = useColorScheme();
+  const theme = Colors[colorScheme ?? 'light'];
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // Ken Burns effect values
+  const scale = useSharedValue(1.0);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  
+  // Create the Ken Burns effect
+  useEffect(() => {
+    // Subtle scale animation from 1.0 to 1.05
+    scale.value = withRepeat(
+      withTiming(1.05, { duration: 10000, easing: Easing.inOut(Easing.ease) }),
+      -1, // infinite repeats
+      true // reverse
+    );
+    
+    // Very subtle movement horizontally
+    translateX.value = withRepeat(
+      withTiming(5, { duration: 15000, easing: Easing.inOut(Easing.ease) }),
+      -1, // infinite repeats
+      true // reverse
+    );
+    
+    // Very subtle movement vertically
+    translateY.value = withRepeat(
+      withTiming(-5, { duration: 20000, easing: Easing.inOut(Easing.ease) }),
+      -1, // infinite repeats
+      true // reverse
+    );
+  }, []);
+  
+  // Create animated style for the background image
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { scale: scale.value },
+        { translateX: translateX.value },
+        { translateY: translateY.value }
+      ],
+    };
+  });
+
+  const handleGetStarted = () => {
+    router.push("../tutorial/intro");
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      {!imageLoaded && (
+        <View style={[styles.loadingContainer, { backgroundColor: '#063B1D' }]}>
+          <ActivityIndicator size="large" color={ColorPalette.white} />
+        </View>
+      )}
+      
+      <AnimatedImageBackground 
+        source={require('@/assets/sections/onboarding/background.jpg')}
+        style={[styles.backgroundImage, animatedStyle]}
+        resizeMode="cover"
+        onLoadEnd={() => setImageLoaded(true)}
+        entering={FadeIn.duration(800)}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.contentContainer}>
+            <Animated.View 
+              entering={FadeIn.delay(200).springify()} 
+              style={styles.logoContainer}
+            >
+              <Image 
+                source={require('@/assets/images/logo/logo-w.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </Animated.View>
+
+            <Animated.View 
+              entering={FadeInDown.delay(400).springify()} 
+              style={styles.textContainer}
+            >
+              <Text style={styles.title}>Plant Smarter</Text>
+              <Text style={styles.subtitle}>
+                Data-driven insights for your plants.
+              </Text>
+            </Animated.View>
+
+            <Animated.View 
+              entering={FadeInUp.delay(600).springify()} 
+              style={styles.buttonContainer}
+            >
+              <Pressable 
+                style={styles.button}
+                android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
+                onPress={handleGetStarted}
+              >
+                <Text style={styles.buttonText}>Get Started</Text>
+              </Pressable>
+              
+              <Pressable style={styles.loginContainer}>
+                <Text style={styles.loginText}>Have an account? <Text style={styles.loginTextBold}>Login</Text></Text>
+              </Pressable>
+            </Animated.View>
+          </View>
+        </SafeAreaView>
+      </AnimatedImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#063B1D', // Same green as in app.json
+  },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    zIndex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    overflow: 'hidden', // Ensures the scaled image doesn't overflow its container
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  safeArea: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'space-between',
+    paddingVertical: 60,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginTop: 40,
+  },
+  logo: {
+    width: 280,
+    height: 100,
+  },
+  textContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  title: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: ColorPalette.white,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 17,
+    lineHeight: 26,
+    color: ColorPalette.white,
+    textAlign: 'center',
+    opacity: 0.9,
+    maxWidth: '90%',
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    marginTop: 30,
+    marginBottom: 50,
+  },
+  button: {
+    backgroundColor: 'rgba(35, 197, 82, 0.95)',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 300,
+  },
+  buttonText: {
+    color: ColorPalette.white,
+    fontSize: 22,
+  },
+  loginContainer: {
+    marginTop: 16,
+    padding: 5,
+  },
+  loginText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 16,
+  },
+  loginTextBold: {
+    fontWeight: 'bold',
+    color: ColorPalette.white,
   },
 });

@@ -1,22 +1,39 @@
 {
   "expo": {
-    "name": "smartSoil",
-    "slug": "smartSoil",
+    "name": "SmartSoil",
+    "slug": "smart-soil",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "smartsoil",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#013B1A"
+    },
     "newArchEnabled": true,
+    "primaryColor": "#34C759",
+    "backgroundColor": "#F5F5F7",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/images/ios/ios-tinted.png",
+      "alternateIcon": {
+        "light": "./assets/images/ios/ios-light.png",
+        "dark": "./assets/images/ios/ios-dark.png"
+      },
+      "userInterfaceStyle": "automatic"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#063B1D"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "statusBar": {
+        "backgroundColor": "#063B1D",
+        "barStyle": "light-content"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -31,7 +48,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#013B1A"
         }
       ]
     ],
