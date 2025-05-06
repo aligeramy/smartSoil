@@ -17,7 +17,11 @@ export default function TutorialLayout() {
           },
           animation: 'fade',
         }}
-      />
+      >
+        <Stack.Screen name="intro" options={{ headerShown: false }} />
+        <Stack.Screen name="lesson1" options={{ headerShown: false }} />
+        <Stack.Screen name="lesson2" options={{ headerShown: false }} />
+      </Stack>
     </>
   );
 } 

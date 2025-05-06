@@ -1,71 +1,95 @@
 import { useTutorial } from '@/app/context/TutorialContext';
 import { Colors as ColorPalette } from '@/constants/Colors';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Image,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View,
-    useWindowDimensions,
+  Image,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeOut,
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 
 // Tutorial introduction content
 const introSteps = [
   {
-    title: 'Welcome to Smart Soil',
-    description: 'Learn how to build a smart plant-watering system.',
-    image: require('@/assets/sections/onboarding/background.jpg'), // Replace with actual intro image
+    title: 'Welcome to SmartSoil',
+    description: 'Learn how to build a smart plant-watering system.\nPress Next to see what we\'ll be covering.',
+    image: require('@/assets/sections/intro/1.png'), // Use available image
   },
   {
-    title: 'Smart Monitoring',
-    description: 'Monitor soil moisture and temperature in real time.',
-    image: require('@/assets/sections/onboarding/background.jpg'), // Replace with actual image
+    title: 'IoT (Internet of Things)',
+    description: 'Discover how sensors collect data from soil and send it to your phone in real-time.',
+    image: require('@/assets/sections/intro/2.png'), // Use available image
   },
   {
-    title: 'Data-Driven Insights',
-    description: 'Get personalized recommendations based on plant type and conditions.',
-    image: require('@/assets/sections/onboarding/background.jpg'), // Replace with actual image
+    title: 'App Design',
+    description: 'Learn how mobile apps connect with devices and display sensor data.',
+    image: require('@/assets/sections/intro/3.png'), // Use available image
   },
   {
-    title: 'Ready to Begin?',
-    description: 'Start your journey to smarter plant care.',
-    image: require('@/assets/sections/onboarding/background.jpg'), // Replace with actual image
+    title: 'Machine Learning',
+    description: 'You\'ll learn how models use patterns to make smart decisions.',
+    image: require('@/assets/sections/intro/4.png'), // Use available image
   },
 ];
 
 export default function IntroScreen() {
-  const { width } = useWindowDimensions();
   const [currentStep, setCurrentStep] = useState(0);
   const [leaving, setLeaving] = useState(false);
-  const scrollX = useSharedValue(0);
   const isLastStep = currentStep === introSteps.length - 1;
+  
+  // Animated values for button feedback
+  const backBtnScale = useSharedValue(1);
+  const nextBtnScale = useSharedValue(1);
+  const startTutorialBtnScale = useSharedValue(1);
+  const skipAllBtnScale = useSharedValue(1);
+  const skipLessonsBtnScale = useSharedValue(1);
   
   // Get the tutorial context
   const { skipTutorial } = useTutorial();
 
-  // Track scroll position for progress bar
-  const handleScroll = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
-    },
-  });
-
-  // Animated style for progress bar
-  const progressStyle = useAnimatedStyle(() => {
+  // Animated styles for buttons
+  const backBtnStyle = useAnimatedStyle(() => {
     return {
-      width: `${((scrollX.value / width) + currentStep) * (100 / introSteps.length)}%`,
+      transform: [{ scale: backBtnScale.value }],
+    };
+  });
+  
+  const nextBtnStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: nextBtnScale.value }],
+      backgroundColor: '#23C552',
+    };
+  });
+  
+  const startTutorialBtnStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: startTutorialBtnScale.value }],
+      backgroundColor: '#23C552',
+    };
+  });
+  
+  const skipAllBtnStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: skipAllBtnScale.value }],
+    };
+  });
+  
+  const skipLessonsBtnStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: skipLessonsBtnScale.value }],
     };
   });
 
@@ -96,144 +120,208 @@ export default function IntroScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Pressable 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
-        </Pressable>
-      </View>
-      
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBackground} />
-        <Animated.View style={[styles.progressFill, progressStyle]} />
-      </View>
-
-      <View style={styles.contentContainer}>
-        {!leaving ? (
-          <Animated.View 
-            style={styles.stepContent}
-            entering={FadeInDown.duration(500)}
-            exiting={FadeOut.duration(300)}
-          >
-            <Image 
-              source={introSteps[currentStep].image}
-              style={styles.stepImage}
-              resizeMode="contain"
-            />
-            
-            <Text style={styles.stepTitle}>
-              {introSteps[currentStep].title}
-            </Text>
-            
-            <Text style={styles.stepDescription}>
-              {introSteps[currentStep].description}
-            </Text>
-          </Animated.View>
-        ) : null}
-      </View>
-      
-      <View style={styles.footer}>
-        {isLastStep ? (
-          <Animated.View 
-            style={styles.finalButtonsContainer}
-            entering={FadeIn.duration(500)}
-          >
-            <View style={styles.stepCounter}>
-              <Text style={styles.stepCounterText}>
-                {currentStep + 1}/{introSteps.length}
-              </Text>
-            </View>
-            
-            <View style={styles.stepProgressContainer}>
-              <View style={styles.stepProgressBackground} />
-              <View 
-                style={[
-                  styles.stepProgressFill, 
-                  { width: `${((currentStep + 1) / introSteps.length) * 100}%` }
-                ]} 
-              />
-            </View>
-            
-            <Pressable
-              style={styles.button}
-              onPress={handleStartTutorial}
+    <View style={styles.outerContainer}>
+      <LinearGradient
+        colors={['#194838', '#123524']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradient}
+      >
+        <SafeAreaView style={styles.safeContainer}>
+          <View style={styles.header}>
+            <Pressable 
+              onPressIn={() => {
+                backBtnScale.value = withTiming(0.95, { duration: 100 });
+              }}
+              onPressOut={() => {
+                backBtnScale.value = withTiming(1, { duration: 150 });
+              }}
+              onPress={() => {
+                if (currentStep > 0) {
+                  // Go back to previous step
+                  setLeaving(true);
+                  setTimeout(() => {
+                    setCurrentStep(currentStep - 1);
+                    setLeaving(false);
+                  }, 300);
+                } else {
+                  // On first step, go home
+                  router.replace("/(tabs)");
+                }
+              }}
             >
-              <Text style={styles.buttonText}>Start Tutorial</Text>
+              <Animated.View style={[styles.navButton, backBtnStyle]}>
+                <MaterialCommunityIcons 
+                  name={currentStep > 0 ? "chevron-left" : "home"} 
+                  size={24} 
+                  color="white" 
+                />
+                <Text style={styles.navButtonText}>
+                  {currentStep > 0 ? "Back" : "Home"}
+                </Text>
+              </Animated.View>
             </Pressable>
             
-            <Pressable
-              style={styles.skipButton}
+            <View style={styles.lessonInfoContainer}>
+              <Text style={styles.lessonTitle}>Introduction</Text>
+            </View>
+            
+            <Pressable 
+              onPressIn={() => {
+                skipAllBtnScale.value = withTiming(0.95, { duration: 100 });
+              }}
+              onPressOut={() => {
+                skipAllBtnScale.value = withTiming(1, { duration: 150 });
+              }}
               onPress={handleSkipTutorial}
             >
-              <Text style={styles.skipButtonText}>Skip Tutorial</Text>
+              <Animated.View style={[styles.navButton, skipAllBtnStyle]}>
+                <Text style={styles.navButtonText}>Skip All</Text>
+                <MaterialCommunityIcons name="chevron-right" size={24} color="white" />
+              </Animated.View>
             </Pressable>
-          </Animated.View>
-        ) : (
-          <>
-            <View style={styles.stepCounter}>
-              <Text style={styles.stepCounterText}>
-                {currentStep + 1}/{introSteps.length}
-              </Text>
-            </View>
-            
-            <View style={styles.stepProgressContainer}>
-              <View style={styles.stepProgressBackground} />
-              <View 
-                style={[
-                  styles.stepProgressFill, 
-                  { width: `${((currentStep + 1) / introSteps.length) * 100}%` }
-                ]} 
-              />
-            </View>
-            
-            <Pressable
-              style={styles.button}
-              onPress={handleNext}
-            >
-              <Text style={styles.buttonText}>Next</Text>
-            </Pressable>
-          </>
-        )}
-      </View>
-    </SafeAreaView>
+          </View>
+          
+          <View style={styles.contentContainer}>
+            {!leaving ? (
+              <Animated.View 
+                style={styles.stepContent}
+                entering={FadeInDown.duration(500)}
+                exiting={FadeOut.duration(300)}
+                key={`step-${currentStep}`}
+              >
+                <Image 
+                  source={introSteps[currentStep].image}
+                  style={styles.stepImage}
+                  resizeMode="contain"
+                />
+                
+                <Text style={styles.stepTitle}>
+                  {introSteps[currentStep].title}
+                </Text>
+                
+                <Text style={styles.stepDescription}>
+                  {introSteps[currentStep].description}
+                </Text>
+              </Animated.View>
+            ) : null}
+          </View>
+          
+          <View style={styles.footer}>
+            {isLastStep ? (
+              <Animated.View 
+                style={styles.finalButtonsContainer}
+                entering={FadeIn.duration(500)}
+              >
+                <View style={styles.stepProgressContainer}>
+                  <View style={styles.stepProgressBackground} />
+                  <View 
+                    style={[
+                      styles.stepProgressFill, 
+                      { width: `${((currentStep + 1) / introSteps.length) * 100}%` }
+                    ]} 
+                  />
+                </View>
+                
+                <Pressable
+                  onPressIn={() => {
+                    startTutorialBtnScale.value = withTiming(0.95, { duration: 100 });
+                  }}
+                  onPressOut={() => {
+                    startTutorialBtnScale.value = withTiming(1, { duration: 150 });
+                  }}
+                  onPress={handleStartTutorial}
+                >
+                  <Animated.View style={[styles.button, startTutorialBtnStyle]}>
+                    <Text style={styles.buttonText}>Start Tutorial</Text>
+                  </Animated.View>
+                </Pressable>
+                
+                <Pressable
+                  onPressIn={() => {
+                    skipLessonsBtnScale.value = withTiming(0.95, { duration: 100 });
+                  }}
+                  onPressOut={() => {
+                    skipLessonsBtnScale.value = withTiming(1, { duration: 150 });
+                  }}
+                  onPress={handleSkipTutorial}
+                >
+                  <Animated.View style={[styles.skipButton, skipLessonsBtnStyle]}>
+                    <Text style={styles.skipButtonText}>Skip All Lessons</Text>
+                  </Animated.View>
+                </Pressable>
+              </Animated.View>
+            ) : (
+              <>
+                <View style={styles.stepProgressContainer}>
+                  <View style={styles.stepProgressBackground} />
+                  <View 
+                    style={[
+                      styles.stepProgressFill, 
+                      { width: `${((currentStep + 1) / introSteps.length) * 100}%` }
+                    ]} 
+                  />
+                </View>
+                
+                <Pressable
+                  onPressIn={() => {
+                    nextBtnScale.value = withTiming(0.95, { duration: 100 });
+                  }}
+                  onPressOut={() => {
+                    nextBtnScale.value = withTiming(1, { duration: 150 });
+                  }}
+                  onPress={handleNext}
+                >
+                  <Animated.View style={[styles.button, nextBtnStyle]}>
+                    <Text style={styles.buttonText}>Next</Text>
+                  </Animated.View>
+                </Pressable>
+              </>
+            )}
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outerContainer: {
     flex: 1,
-    backgroundColor: '#063B1D',
+    backgroundColor: '#123524', // Fallback color matching the gradient end
+  },
+  gradient: {
+    flex: 1,
+  },
+  safeContainer: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  backButton: {
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 8,
+    minWidth: 100,
+    justifyContent: 'center',
   },
-  progressContainer: {
-    height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    marginHorizontal: 20,
-    borderRadius: 3,
-    overflow: 'hidden',
+  navButtonText: {
+    color: ColorPalette.white,
+    marginHorizontal: 4,
+    fontSize: 16,
   },
-  progressBackground: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  lessonInfoContainer: {
+    alignItems: 'center',
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#23C552',
-    borderRadius: 3,
+  lessonTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: ColorPalette.white,
   },
   contentContainer: {
     flex: 1,
@@ -246,7 +334,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stepImage: {
-    width: 200,
+    width: 280,
     height: 200,
     marginBottom: 30,
   },
@@ -274,7 +362,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    backgroundColor: '#23C552',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 30,
@@ -285,21 +372,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: ColorPalette.white,
     fontSize: 22,
-  },
-  skipButton: {
-    marginTop: 16,
-    padding: 5,
-  },
-  skipButtonText: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 16,
-  },
-  stepCounter: {
-    marginBottom: 10,
-  },
-  stepCounterText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
   },
   stepProgressContainer: {
     height: 4,
@@ -321,5 +393,13 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.9)', // White fill
     borderRadius: 2,
+  },
+  skipButton: {
+    marginTop: 16,
+    padding: 5,
+  },
+  skipButtonText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 16,
   },
 }); 

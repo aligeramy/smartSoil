@@ -65,12 +65,18 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mark a lesson as completed
   const completeLesson = (lessonId: string) => {
+    // Add null check to ensure the lesson exists before updating
+    if (!lessonProgress[lessonId]) {
+      // Initialize the lesson if it doesn't exist
+      startLesson(lessonId, 5); // Default to 5 steps if not initialized
+    }
+    
     setLessonProgress(prev => ({
       ...prev,
       [lessonId]: {
         ...prev[lessonId],
         completed: true,
-        currentStep: prev[lessonId].totalSteps
+        currentStep: prev[lessonId]?.totalSteps || 0
       }
     }));
     
@@ -137,4 +143,7 @@ export const useTutorial = (): TutorialContextType => {
     throw new Error('useTutorial must be used within a TutorialProvider');
   }
   return context;
-}; 
+};
+
+// Add default export
+export default TutorialProvider; 

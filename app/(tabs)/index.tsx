@@ -1,8 +1,8 @@
 import Colors, { Colors as ColorPalette } from '@/constants/Colors';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, Image, ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
-import Animated, { Easing, FadeIn, FadeInDown, FadeInUp, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
 
@@ -11,45 +11,7 @@ export default function HomeScreen() {
   const theme = Colors[colorScheme ?? 'light'];
   const [imageLoaded, setImageLoaded] = useState(false);
   
-  // Ken Burns effect values
-  const scale = useSharedValue(1.0);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  
-  // Create the Ken Burns effect
-  useEffect(() => {
-    // Subtle scale animation from 1.0 to 1.05
-    scale.value = withRepeat(
-      withTiming(1.05, { duration: 10000, easing: Easing.inOut(Easing.ease) }),
-      -1, // infinite repeats
-      true // reverse
-    );
-    
-    // Very subtle movement horizontally
-    translateX.value = withRepeat(
-      withTiming(5, { duration: 15000, easing: Easing.inOut(Easing.ease) }),
-      -1, // infinite repeats
-      true // reverse
-    );
-    
-    // Very subtle movement vertically
-    translateY.value = withRepeat(
-      withTiming(-5, { duration: 20000, easing: Easing.inOut(Easing.ease) }),
-      -1, // infinite repeats
-      true // reverse
-    );
-  }, []);
-  
-  // Create animated style for the background image
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { scale: scale.value },
-        { translateX: translateX.value },
-        { translateY: translateY.value }
-      ],
-    };
-  });
+  // Ken Burns effect removed
 
   const handleGetStarted = () => {
     router.push("../tutorial/intro");
@@ -63,12 +25,11 @@ export default function HomeScreen() {
         </View>
       )}
       
-      <AnimatedImageBackground 
+      <ImageBackground 
         source={require('@/assets/sections/onboarding/background.jpg')}
-        style={[styles.backgroundImage, animatedStyle]}
+        style={styles.backgroundImage}
         resizeMode="cover"
         onLoadEnd={() => setImageLoaded(true)}
-        entering={FadeIn.duration(800)}
       >
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.contentContainer}>
@@ -111,7 +72,7 @@ export default function HomeScreen() {
             </Animated.View>
           </View>
         </SafeAreaView>
-      </AnimatedImageBackground>
+      </ImageBackground>
     </View>
   );
 }

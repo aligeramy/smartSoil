@@ -52,14 +52,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === 'dark' ? customDarkTheme : customLightTheme}>
         <TutorialProvider>
-          <Stack screenOptions={{
-            headerStyle: {
-              backgroundColor: colorScheme === 'dark' ? Colors.dark.accent : Colors.light.accent,
-            },
-            headerTintColor: colorScheme === 'dark' ? Colors.dark.text : Colors.light.text,
-          }}>
+          <Stack 
+            screenOptions={{
+              headerShown: false, // Hide header globally
+            }}
+          >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
+            <Stack.Screen name="tutorial" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" options={{ title: 'Not Found', headerShown: true }} />
           </Stack>
           <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         </TutorialProvider>
