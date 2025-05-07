@@ -3,6 +3,7 @@ import { Colors as ColorPalette } from '@/constants/Colors';
 import modelData from '@/lib/model-data';
 import { FeatureItem, ModelMetrics } from '@/lib/types';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -24,6 +25,10 @@ import Animated, {
   withTiming
 } from 'react-native-reanimated';
 import WateringDecisionTool from '../components/WateringDecisionTool';
+
+// Constants
+let ESP_BASE = "http://192.168.4.1"; // ESP8266 base URL in AP mode
+const ESP_IP_STORAGE_KEY = 'esp_ip_address';
 
 // Lesson 3 steps
 const lesson3Steps = [
@@ -567,6 +572,23 @@ export default function Lesson3Screen() {
   const [currentStep, setCurrentStep] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const isLastStep = currentStep === lesson3Steps.length - 1;
+  
+  // Load ESP IP from storage
+  useEffect(() => {
+    const loadESPIP = async () => {
+      try {
+        const storedIP = await AsyncStorage.getItem(ESP_IP_STORAGE_KEY);
+        if (storedIP) {
+          ESP_BASE = `http://${storedIP}`;
+          console.log('Loaded ESP IP:', ESP_BASE);
+        }
+      } catch (error) {
+        console.error('Failed to load ESP IP:', error);
+      }
+    };
+    
+    loadESPIP();
+  }, []);
   
   // Animated values for button feedback
   const backBtnScale = useSharedValue(1);
@@ -1450,6 +1472,10 @@ const styles = StyleSheet.create({
   matrixSubtitle: {
     color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 15,
+    marginTop: -10,
+
   },
   matrixGrid: {
     flexDirection: 'row',
@@ -1853,16 +1879,13 @@ const styles = StyleSheet.create({
   },
   featureGameScrollContent: {
     padding: 15,
-    paddingBottom: 160, // Space for fixed metrics
+    paddingBottom: 105, // Space for fixed metrics
   },
   fixedMetricsCard: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(18, 53, 36, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
     zIndex: 999,
     elevation: 5,
     shadowColor: '#000',

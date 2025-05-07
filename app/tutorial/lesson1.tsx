@@ -1,6 +1,7 @@
 import { useTutorial } from '@/app/context/TutorialContext';
 import { Colors as ColorPalette } from '@/constants/Colors';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -53,7 +54,8 @@ const lesson1Steps = [
 ];
 
 // Constants
-const ESP_BASE = "http://192.168.4.1"; // ESP8266 base URL in AP mode
+let ESP_BASE = "http://192.168.4.1"; // ESP8266 base URL in AP mode
+const ESP_IP_STORAGE_KEY = 'esp_ip_address';
 
 // Lesson ID for tracking progress
 const LESSON_ID = 'lesson1';
@@ -284,6 +286,23 @@ export default function Lesson1Screen() {
   
   // Check for navigation parameters
   const params = useLocalSearchParams();
+  
+  // Load ESP IP from storage
+  useEffect(() => {
+    const loadESPIP = async () => {
+      try {
+        const storedIP = await AsyncStorage.getItem(ESP_IP_STORAGE_KEY);
+        if (storedIP) {
+          ESP_BASE = `http://${storedIP}`;
+          console.log('Loaded ESP IP:', ESP_BASE);
+        }
+      } catch (error) {
+        console.error('Failed to load ESP IP:', error);
+      }
+    };
+    
+    loadESPIP();
+  }, []);
   
   // Initialize lesson progress when component mounts
   useEffect(() => {
