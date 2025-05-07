@@ -1146,7 +1146,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
   },
@@ -1195,7 +1195,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   gaugeLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.7)',
   },
   dataMetrics: {

@@ -474,8 +474,15 @@ const ModelFeatureGameComponent = () => {
 
 // Fifth component - Watering Decision Tool
 const WateringDecisionToolComponent = () => {
+  // This component needs to take the full available space
   return (
-    <View style={styles.lessonContent}>
+    <View style={{
+      flex: 1,
+      width: '100%',
+      alignSelf: 'stretch',
+      height: '100%',
+      marginTop: 0,
+    }}>
       <WateringDecisionTool />
     </View>
   );
@@ -611,14 +618,14 @@ export default function Lesson3Screen() {
     
     // Always show title and description
     const headerContent = (
-      <>
+      <View style={[styles.headerContentContainer, currentStep === 3 && styles.wateringToolHeader]}>
         <Text style={styles.stepTitle}>
           {currentStepData.title}
         </Text>
         <Text style={styles.stepDescription}>
           {currentStepData.description}
         </Text>
-      </>
+      </View>
     );
     
     // Render the appropriate content for each step
@@ -649,13 +656,14 @@ export default function Lesson3Screen() {
         );
         break;
       case 3:
-        stepContent = (
+        // For the watering decision tool, we'll return just the component without wrapping
+        // This will be handled differently in the main render method
+        return (
           <>
             {headerContent}
             <WateringDecisionToolComponent />
           </>
         );
-        break;
       case 4:
         stepContent = (
           <>
@@ -741,20 +749,26 @@ export default function Lesson3Screen() {
             </Pressable>
           </View>
 
-          <View style={styles.contentContainer}>
+          <View style={[styles.contentContainer, currentStep === 3 && styles.wateringToolContainer]}>
             {!leaving ? (
               <Animated.View 
-                style={styles.stepContent}
+                style={[styles.stepContent, currentStep === 3 && styles.wateringToolContent]}
                 entering={FadeInDown.duration(500)}
                 exiting={FadeOut.duration(300)}
                 key={`step-${currentStep}`}
               >
-                <ScrollView 
-                  contentContainerStyle={styles.scrollContainer}
-                  showsVerticalScrollIndicator={false}
-                >
-                  {renderStepContent()}
-                </ScrollView>
+                {currentStep === 3 ? (
+                  // Direct rendering for watering decision tool - no ScrollView wrapping
+                  renderStepContent()
+                ) : (
+                  // Normal ScrollView wrapping for other steps
+                  <ScrollView 
+                    contentContainerStyle={styles.scrollContainer}
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {renderStepContent()}
+                  </ScrollView>
+                )}
               </Animated.View>
             ) : null}
           </View>
@@ -839,15 +853,13 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
     width: '100%',
+    alignSelf: 'stretch',
   },
   stepContent: {
     width: '100%',
-    alignItems: 'center',
-    maxWidth: 350,
+    flex: 1,
+    alignSelf: 'stretch',
   },
   stepImage: {
     width: 280,
@@ -868,6 +880,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     lineHeight: 22,
     marginBottom: 15,
+    paddingHorizontal: 5,
   },
   footer: {
     padding: 20,
@@ -908,9 +921,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   scrollContainer: {
-    alignItems: 'center',
+    padding: 15,
     width: '100%',
-    maxWidth: 350,
   },
   
   // Lesson content styles
@@ -1797,5 +1809,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'right',
+  },
+  watertoolWrapper: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+    alignSelf: 'stretch',
+    height: '100%',
+    marginTop: 10,
+  },
+  headerContentContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  wateringToolHeader: {
+    paddingHorizontal: 15,
+    marginBottom: 5,
+  },
+  wateringToolContainer: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
+  wateringToolContent: {
+    paddingHorizontal: 0,
   },
 }); 

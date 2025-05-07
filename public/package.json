@@ -1,0 +1,13 @@
+{
+  "name": "smartsoil-web",
+  "version": "1.0.0",
+  "description": "SmartSoil Web Build",
+  "private": true,
+  "dependencies": {
+    "next": "latest",
+    "next-transpile-modules": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "@expo/vector-icons": "latest"
+  }
+} 

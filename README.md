@@ -12,98 +12,156 @@ SmartSoil is a mobile application designed to connect with an ESP8266-based soil
 - **Interactive Dashboard**: Easy-to-read visual displays of all key plant health metrics
 - **Trend Analysis**: Track changes in growing conditions over time with historical data charts
 - **Guided Setup**: Step-by-step tutorial to help you connect your ESP8266 soil monitoring hardware
-- **Plant Care Guidance**: Recommendations based on soil moisture levels for various plant types
+- **Plant Care Guidance**: Recommendations based on plant type and current conditions
 
-## Technical Requirements
+## Installation
 
-- iOS 14.0 or higher
-- Android 9.0 (API level 28) or higher
-- ESP8266 hardware module with soil moisture, temperature, and humidity sensors
+### Prerequisites
 
-## Getting Started
+- [Node.js](https://nodejs.org/) (v18 or newer)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
 
-1. **Hardware Setup**: Follow the in-app tutorial to set up your ESP8266 soil moisture monitoring device
-2. **Connect to the Device**: Join the WiFi network created by your ESP module
-3. **Access Data**: View real-time readings and historical trends on the dashboard
+### Setup
 
-## For Developers
+1. Clone the repository
+   ```
+   git clone https://github.com/yourusername/smart-soil.git
+   cd smart-soil
+   ```
 
-### Installation
+2. Install dependencies
+   ```
+   npm install
+   ```
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/smartsoil.git
+3. Start the Expo development server
+   ```
+   npm start
+   ```
 
-# Install dependencies
-cd smartsoil
-npm install
+## App Icons Management
 
-# Start the development server
-npm start
+The SmartSoil app uses a consistent set of icons across iOS, Android, and web platforms. We've included scripts to help manage and generate these icons.
+
+### Icon Requirements
+
+- **iOS Icons**: Square icons with rounded corners (iOS applies rounding automatically)
+  - Main App Store icon: 1024×1024px PNG without transparency
+  - Various sizes generated automatically for different iOS devices
+
+- **Android Icons**: 
+  - Adaptive icons with foreground/background layers
+  - Legacy square icons for older Android versions
+  - Play Store icon: 512×512px
+
+### Generating Icons
+
+1. Place your source icon files in the correct locations:
+   - Main app icon: `assets/images/logo/icon/icon.png`
+   - Android adaptive foreground: `assets/images/logo/icon/adaptive-icon.png`
+
+2. Run the icon generation script:
+   ```
+   npm run generate:icons
+   ```
+
+3. The script will generate all required icon sizes in the `assets/app-icons` directory
+
+### Customizing Icons
+
+- To change the background color of Android adaptive icons, modify the `BG_COLOR` variable in `scripts/build-icons.sh`
+- To customize icon generation, you can edit the icon generation scripts:
+  - Bash script (recommended): `scripts/build-icons.sh`
+  - Node.js alternative: `scripts/generate-icons.js`
+
+### Configuration
+
+Icon paths are configured in `app.json`:
+
+```json
+{
+  "expo": {
+    "icon": "./assets/images/logo/icon/icon.png",
+    "ios": {
+      "icon": "./assets/images/logo/icon/icon.png"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/logo/icon/adaptive-icon.png",
+        "backgroundColor": "#063B1D"
+      }
+    }
+  }
+}
 ```
 
-### Building the App
+## Deploying to Vercel
 
-```bash
-# Build for Android
-npx eas build --platform android --profile androidApk
+SmartSoil includes a web version that can be deployed to Vercel. Follow these steps to deploy the web app:
 
-# Build for iOS
-npx eas build --platform ios --profile production
+### Preparing for Deployment
+
+1. Build the web version:
+   ```
+   npm run build:web
+   ```
+
+2. Fix font loading issues (important for icons):
+   ```
+   node scripts/fix-web-fonts.js
+   ```
+
+3. Deploy to Vercel with one of these commands:
+   ```
+   npm run deploy:web
+   # or manually with
+   vercel dist --prod
+   ```
+
+### Troubleshooting Web Deployment
+
+If icons don't appear in your web app, ensure:
+
+1. You've properly configured the icon fonts to preload in `app/_layout.tsx`
+2. The webpack config properly handles font files (TTF)
+3. The Vercel config has correct routes for static assets
+
+## Building for Android and iOS
+
+To build the app for Android or iOS, use the following commands:
+
+### Android
+
+```
+# Development APK
+npm run build:android-dev
+
+# Release APK (Standard)
+npm run build:android-apk
+
+# Release APK (Optimized)
+eas build --platform android --profile optimizedApk
+
+# Release AAB for Play Store
+npm run build:android-aab
 ```
 
-### Submitting to App Stores
+### iOS
 
-```bash
-# Submit to Google Play Store
-npx eas submit --platform android --profile production
-
-# Submit to Apple App Store
-npx eas submit --platform ios --profile production
 ```
+# Development Client
+eas build --platform ios --profile development
 
-## App Store Submission Checklist
-
-### Google Play Store
-
-- [x] App Bundle (AAB) created with `npx eas build --platform android --profile androidAab`
-- [ ] Privacy Policy URL added to app listing
-- [ ] Data safety form completed
-- [ ] App content rated
-- [ ] Store listing details (description, screenshots, promo graphics)
-- [ ] Contact information updated
-- [ ] App signing configured
-
-### Apple App Store
-
-- [ ] App binary built with `npx eas build --platform ios --profile production`
-- [ ] App Store Connect listing complete
-- [ ] Privacy policy URL added
-- [ ] App privacy details provided
-- [ ] Screenshots for all required device sizes
-- [ ] App Review Information supplied
-- [ ] Export compliance documentation
-
-## GDPR and Data Privacy Compliance
-
-SmartSoil is designed with privacy in mind:
-
-- No personal data is stored in the cloud
-- Sensor data remains on the local device
-- No tracking or analytics beyond basic app functionality
-- No third-party data sharing
-- User has full control to delete any stored information
+# Production Build
+eas build --platform ios --profile production
+```
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Support
+## Acknowledgements
 
-For support, please contact support@smartsoil-app.com or visit our website at https://www.smartsoil-app.com/support
-
-## Acknowledgments
-
-- Built with React Native and Expo
-- ESP8266 firmware based on Arduino
-- Icons provided by Ionicons
+- [Expo](https://expo.dev/) - The app framework
+- [React Native](https://reactnative.dev/) - The mobile app platform
+- [ESP8266 Community](https://github.com/esp8266/Arduino) - For IoT sensor support

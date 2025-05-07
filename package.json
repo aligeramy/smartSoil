@@ -15,8 +15,11 @@
     "build:android-aab": "node ./scripts/android-build.js aab",
     "build:android": "npm run build:android-apk",
     "build:web": "npx expo export --platform web",
+    "vercel-build": "npm run build:web && node scripts/fix-web-fonts.js",
     "serve:web": "npx serve web-build",
-    "deploy:web": "npx vercel web-build --confirm"
+    "deploy:web": "npx vercel web-build --confirm",
+    "generate:icons": "./scripts/build-icons.sh",
+    "prepare:icons": "node ./scripts/generate-icons.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -24,15 +27,16 @@
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
-    "expo": "~53.0.7",
+    "expo": "~53.0.8",
     "expo-blur": "~14.1.4",
-    "expo-constants": "~17.1.5",
+    "expo-constants": "~17.1.6",
+    "expo-dev-client": "~5.1.8",
     "expo-font": "~13.3.1",
     "expo-haptics": "~14.1.4",
-    "expo-image": "~2.1.6",
+    "expo-image": "~2.1.7",
     "expo-linear-gradient": "^14.1.4",
     "expo-linking": "~7.1.4",
-    "expo-router": "~5.0.5",
+    "expo-router": "~5.0.6",
     "expo-splash-screen": "~0.30.8",
     "expo-status-bar": "~2.2.3",
     "expo-symbols": "~0.4.4",
@@ -46,8 +50,7 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.10.0",
     "react-native-web": "~0.20.0",
-    "react-native-webview": "13.13.5",
-    "expo-dev-client": "~5.1.8"
+    "react-native-webview": "13.13.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -55,6 +58,7 @@
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
     "file-loader": "^6.2.0",
+    "next-transpile-modules": "^10.0.1",
     "serve": "^14.2.1",
     "typescript": "~5.8.3",
     "url-loader": "^4.1.1"

@@ -1,3 +1,5 @@
+import { useScreenSize } from '@/components/ui/ResponsiveLayout';
+import { ResponsiveText } from '@/components/ui/ResponsiveText';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -15,8 +17,9 @@ import {
   View
 } from 'react-native';
 
-// Constants
-const ESP_BASE = "http://192.168.4.1";
+// Constants - will be dynamically set from settings
+let ESP_BASE = "http://192.168.4.1";
+const ESP_IP_STORAGE_KEY = 'esp_ip_address';
 const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
 const DEFAULT_CHART_POINTS = 20;
 
@@ -36,6 +39,8 @@ const getMoistureLevel = (percentage: number) => {
 
 // Dashboard for Live ESP Data
 export default function ESPDashboardScreen() {
+  const { isLargeScreen } = useScreenSize();
+  
   // State for sensor data
   const [sensorData, setSensorData] = useState({
     moisture: 0,
@@ -68,6 +73,19 @@ export default function ESPDashboardScreen() {
   // Navigation handler
   const handleBack = useCallback(() => {
     router.back();
+  }, []);
+  
+  // Load ESP IP from storage
+  useEffect(() => {
+    // For web, use localStorage
+    if (Platform.OS === 'web') {
+      const savedIp = localStorage.getItem(ESP_IP_STORAGE_KEY);
+      if (savedIp) {
+        ESP_BASE = `http://${savedIp}`;
+        console.log('Using ESP IP from settings:', ESP_BASE);
+      }
+    }
+    // For native apps, would use AsyncStorage (not implemented here)
   }, []);
 
   // Start pulse animation for the "Live" indicator
@@ -112,6 +130,13 @@ export default function ESPDashboardScreen() {
       };
     });
     
+    // Update history after a delay
+    setTimeout(() => {
+      setMoistureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), sensorData.moisture]);
+      setTemperatureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), sensorData.temperature]);
+      setHumidityHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), sensorData.humidity]);
+    }, 100);
+    
     setLastUpdated(new Date().toLocaleTimeString());
   };
 
@@ -127,6 +152,14 @@ export default function ESPDashboardScreen() {
     }
     
     try {
+      // Check for updated ESP IP from settings
+      if (Platform.OS === 'web') {
+        const savedIp = localStorage.getItem(ESP_IP_STORAGE_KEY);
+        if (savedIp) {
+          ESP_BASE = `http://${savedIp}`;
+        }
+      }
+      
       // Try to fetch DHT11 data
       const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`, { 
         headers: { 'Cache-Control': 'no-cache' }
@@ -245,7 +278,7 @@ export default function ESPDashboardScreen() {
       >
         <SafeAreaView style={styles.contentContainer}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, isLargeScreen && styles.headerLarge]}>
             <View style={styles.headerLeft}>
               <Pressable
                 onPress={handleBack}
@@ -254,9 +287,9 @@ export default function ESPDashboardScreen() {
                   pressed && { opacity: 0.7 }
                 ]}
               >
-                <Ionicons name="chevron-back" size={24} color="white" />
+                <Ionicons name="chevron-back" size={isLargeScreen ? 28 : 24} color="white" />
               </Pressable>
-              <Text style={styles.headerTitle}>ESP Dashboard</Text>
+              <ResponsiveText variant="heading2" style={styles.headerTitle}>ESP Dashboard</ResponsiveText>
               {connected && !demoMode && (
                 <View style={styles.liveIndicator}>
                   <Animated.View 
@@ -277,18 +310,18 @@ export default function ESPDashboardScreen() {
             
             <View style={styles.connectionInfo}>
               {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size={isLargeScreen ? "large" : "small"} color="#fff" />
               ) : connected ? (
                 <View style={styles.connectionStatus}>
                   <View style={[styles.statusDot, { backgroundColor: '#28a745' }]} />
-                  <Text style={styles.statusText}>Connected</Text>
+                  <ResponsiveText variant="caption" style={styles.statusText}>Connected</ResponsiveText>
                 </View>
               ) : (
                 <View style={styles.connectionStatus}>
                   <View style={[styles.statusDot, { backgroundColor: '#dc3545' }]} />
-                  <Text style={styles.statusText}>
+                  <ResponsiveText variant="caption" style={styles.statusText}>
                     Disconnected
-                  </Text>
+                  </ResponsiveText>
                 </View>
               )}
             </View>
@@ -297,7 +330,10 @@ export default function ESPDashboardScreen() {
           {/* Main Content */}
           <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              isLargeScreen && styles.scrollContentLarge
+            ]}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -306,108 +342,152 @@ export default function ESPDashboardScreen() {
               />
             }
           >
-            {/* Main Sensor Cards */}
-            <View style={styles.mainCardContainer}>
+            {/* Main Cards Container - changes layout based on screen size */}
+            <View style={[
+              styles.mainCardContainer, 
+              isLargeScreen && styles.mainCardContainerLarge
+            ]}>
               {/* Soil Moisture Card */}
               <Pressable
-                style={[styles.mainCard, { borderColor: moistureInfo.color }]}
+                style={[
+                  styles.mainCard, 
+                  { borderColor: moistureInfo.color },
+                  isLargeScreen && styles.mainCardLarge
+                ]}
                 onPress={() => setShowMoistureInfo(!showMoistureInfo)}
               >
                 <View style={styles.cardHeader}>
-                  <Ionicons name={moistureInfo.icon as any} size={28} color={moistureInfo.color} />
-                  <Text style={styles.cardTitle}>Soil Moisture</Text>
+                  <Ionicons 
+                    name={moistureInfo.icon as any} 
+                    size={isLargeScreen ? 32 : 28} 
+                    color={moistureInfo.color} 
+                  />
+                  <ResponsiveText variant="body" style={styles.cardTitle}>Soil Moisture</ResponsiveText>
                 </View>
                 
                 <View style={styles.cardContent}>
-                  <Text style={[styles.mainValue, { color: moistureInfo.color }]}>
+                  <ResponsiveText style={[
+                    styles.mainValue, 
+                    { color: moistureInfo.color },
+                    isLargeScreen && styles.mainValueLarge
+                  ]}>
                     {sensorData.moisture}<Text style={styles.unit}>%</Text>
-                  </Text>
+                  </ResponsiveText>
                 </View>
                 
                 <View style={styles.cardFooter}>
-                  <Text style={[styles.levelText, { color: moistureInfo.color }]}>
+                  <ResponsiveText style={[styles.levelText, { color: moistureInfo.color }]}>
                     {moistureInfo.level}
-                  </Text>
-                  <Text style={styles.rawText}>Raw: {sensorData.rawAnalog}</Text>
+                  </ResponsiveText>
+                  <ResponsiveText variant="caption" style={styles.rawText}>Raw: {sensorData.rawAnalog}</ResponsiveText>
                 </View>
                 
                 {showMoistureInfo && (
                   <View style={styles.infoOverlay}>
                     <View style={styles.infoContent}>
-                      <Text style={styles.infoTitle}>Soil Moisture Guide</Text>
+                      <ResponsiveText variant="heading3" style={styles.infoTitle}>Soil Moisture Guide</ResponsiveText>
                       <View style={styles.infoRow}>
                         <View style={[styles.infoColor, { backgroundColor: '#FF3B30' }]} />
-                        <Text style={styles.infoText}>0-20%: Very Dry - Water immediately!</Text>
+                        <ResponsiveText variant="caption" style={styles.infoText}>0-20%: Very Dry - Water immediately!</ResponsiveText>
                       </View>
                       <View style={styles.infoRow}>
                         <View style={[styles.infoColor, { backgroundColor: '#FF9500' }]} />
-                        <Text style={styles.infoText}>20-40%: Dry - Water soon</Text>
+                        <ResponsiveText variant="caption" style={styles.infoText}>20-40%: Dry - Water soon</ResponsiveText>
                       </View>
                       <View style={styles.infoRow}>
                         <View style={[styles.infoColor, { backgroundColor: '#34C759' }]} />
-                        <Text style={styles.infoText}>40-60%: Moderate - Ideal for many plants</Text>
+                        <ResponsiveText variant="caption" style={styles.infoText}>40-60%: Moderate - Ideal for many plants</ResponsiveText>
                       </View>
                       <View style={styles.infoRow}>
                         <View style={[styles.infoColor, { backgroundColor: '#30B0C7' }]} />
-                        <Text style={styles.infoText}>60-80%: Moist - Good for tropical plants</Text>
+                        <ResponsiveText variant="caption" style={styles.infoText}>60-80%: Moist - Good for tropical plants</ResponsiveText>
                       </View>
                       <View style={styles.infoRow}>
                         <View style={[styles.infoColor, { backgroundColor: '#007AFF' }]} />
-                        <Text style={styles.infoText}>80-100%: Wet - Risk of overwatering</Text>
+                        <ResponsiveText variant="caption" style={styles.infoText}>80-100%: Wet - Risk of overwatering</ResponsiveText>
                       </View>
                     </View>
                   </View>
                 )}
               </Pressable>
               
-              {/* Temperature Card */}
-              <View style={styles.secondaryCardsContainer}>
-                <View style={styles.secondaryCard}>
+              {/* Secondary Cards Container */}
+              <View style={[
+                styles.secondaryCardsContainer,
+                isLargeScreen && styles.secondaryCardsContainerLarge
+              ]}>
+                {/* Temperature Card */}
+                <View style={[
+                  styles.secondaryCard,
+                  isLargeScreen && styles.secondaryCardLarge
+                ]}>
                   <View style={styles.cardHeader}>
-                    <Ionicons name="thermometer-outline" size={22} color="#FF9500" />
-                    <Text style={styles.cardTitleSmall}>Temperature</Text>
+                    <Ionicons 
+                      name="thermometer-outline" 
+                      size={isLargeScreen ? 26 : 22} 
+                      color="#FF9500" 
+                    />
+                    <ResponsiveText variant="body" style={styles.cardTitleSmall}>Temperature</ResponsiveText>
                   </View>
                   
                   <View style={styles.cardContent}>
-                    <Text style={[styles.secondaryValue, { color: '#FF9500' }]}>
+                    <ResponsiveText style={[
+                      styles.secondaryValue, 
+                      { color: '#FF9500' },
+                      isLargeScreen && styles.secondaryValueLarge
+                    ]}>
                       {sensorData.temperature.toFixed(1)}<Text style={styles.unit}>°C</Text>
-                    </Text>
+                    </ResponsiveText>
                   </View>
                   
                   <View style={styles.cardFooter}>
-                    <Text style={styles.smallText}>
+                    <ResponsiveText variant="caption" style={styles.smallText}>
                       Heat Index: {sensorData.heatIndex.toFixed(1)}°C
-                    </Text>
+                    </ResponsiveText>
                   </View>
                 </View>
                 
                 {/* Humidity Card */}
-                <View style={styles.secondaryCard}>
+                <View style={[
+                  styles.secondaryCard,
+                  isLargeScreen && styles.secondaryCardLarge
+                ]}>
                   <View style={styles.cardHeader}>
-                    <Ionicons name="water-outline" size={22} color="#007AFF" />
-                    <Text style={styles.cardTitleSmall}>Humidity</Text>
+                    <Ionicons 
+                      name="water-outline" 
+                      size={isLargeScreen ? 26 : 22} 
+                      color="#007AFF" 
+                    />
+                    <ResponsiveText variant="body" style={styles.cardTitleSmall}>Humidity</ResponsiveText>
                   </View>
                   
                   <View style={styles.cardContent}>
-                    <Text style={[styles.secondaryValue, { color: '#007AFF' }]}>
+                    <ResponsiveText style={[
+                      styles.secondaryValue, 
+                      { color: '#007AFF' },
+                      isLargeScreen && styles.secondaryValueLarge
+                    ]}>
                       {sensorData.humidity.toFixed(1)}<Text style={styles.unit}>%</Text>
-                    </Text>
+                    </ResponsiveText>
                   </View>
                   
                   <View style={styles.cardFooter}>
-                    <Text style={styles.smallText}>
+                    <ResponsiveText variant="caption" style={styles.smallText}>
                       Air Moisture
-                    </Text>
+                    </ResponsiveText>
                   </View>
                 </View>
               </View>
             </View>
             
             {/* Chart Section */}
-            <View style={styles.chartContainer}>
+            <View style={[
+              styles.chartContainer,
+              isLargeScreen && styles.chartContainerLarge
+            ]}>
               <View style={styles.chartHeader}>
-                <Text style={styles.chartTitle}>Recent Trends</Text>
-                <Text style={styles.chartSubtitle}>Last {DEFAULT_CHART_POINTS} readings</Text>
+                <ResponsiveText variant="heading3" style={styles.chartTitle}>Recent Trends</ResponsiveText>
+                <ResponsiveText variant="caption" style={styles.chartSubtitle}>Last {DEFAULT_CHART_POINTS} readings</ResponsiveText>
               </View>
               
               {/* Simplified Chart - Lines representing data trends */}
@@ -415,8 +495,8 @@ export default function ESPDashboardScreen() {
                 {/* Moisture trend line */}
                 <View style={styles.chartRow}>
                   <View style={styles.chartLabelContainer}>
-                    <Ionicons name="water" size={16} color="#007AFF" />
-                    <Text style={styles.chartLabel}>Moisture</Text>
+                    <Ionicons name="water" size={isLargeScreen ? 20 : 16} color="#007AFF" />
+                    <ResponsiveText variant="caption" style={styles.chartLabel}>Moisture</ResponsiveText>
                   </View>
                   
                   <View style={styles.chartLineContainer}>
@@ -425,6 +505,7 @@ export default function ESPDashboardScreen() {
                         key={`moisture-${index}`} 
                         style={[
                           styles.chartBar,
+                          isLargeScreen && styles.chartBarLarge,
                           { 
                             height: `${Math.max(5, value)}%`,
                             backgroundColor: getMoistureLevel(value).color,
@@ -439,8 +520,8 @@ export default function ESPDashboardScreen() {
                 {/* Temperature trend line */}
                 <View style={styles.chartRow}>
                   <View style={styles.chartLabelContainer}>
-                    <Ionicons name="thermometer-outline" size={16} color="#FF9500" />
-                    <Text style={styles.chartLabel}>Temperature</Text>
+                    <Ionicons name="thermometer-outline" size={isLargeScreen ? 20 : 16} color="#FF9500" />
+                    <ResponsiveText variant="caption" style={styles.chartLabel}>Temperature</ResponsiveText>
                   </View>
                   
                   <View style={styles.chartLineContainer}>
@@ -449,6 +530,7 @@ export default function ESPDashboardScreen() {
                         key={`temp-${index}`} 
                         style={[
                           styles.chartBar,
+                          isLargeScreen && styles.chartBarLarge,
                           { 
                             height: `${Math.max(5, mapValue(value, 15, 35, 0, 100))}%`,
                             backgroundColor: '#FF9500',
@@ -463,8 +545,8 @@ export default function ESPDashboardScreen() {
                 {/* Humidity trend line */}
                 <View style={styles.chartRow}>
                   <View style={styles.chartLabelContainer}>
-                    <Ionicons name="water-outline" size={16} color="#30B0C7" />
-                    <Text style={styles.chartLabel}>Humidity</Text>
+                    <Ionicons name="water-outline" size={isLargeScreen ? 20 : 16} color="#30B0C7" />
+                    <ResponsiveText variant="caption" style={styles.chartLabel}>Humidity</ResponsiveText>
                   </View>
                   
                   <View style={styles.chartLineContainer}>
@@ -473,6 +555,7 @@ export default function ESPDashboardScreen() {
                         key={`humidity-${index}`} 
                         style={[
                           styles.chartBar,
+                          isLargeScreen && styles.chartBarLarge,
                           { 
                             height: `${Math.max(5, value)}%`,
                             backgroundColor: '#30B0C7',
@@ -487,32 +570,53 @@ export default function ESPDashboardScreen() {
             </View>
             
             {/* Controls and Info */}
-            <View style={styles.controlsContainer}>
+            <View style={[
+              styles.controlsContainer,
+              isLargeScreen && styles.controlsContainerLarge
+            ]}>
               <Pressable 
-                style={[styles.controlButton, !autoRefresh && styles.controlButtonActive]} 
+                style={[
+                  styles.controlButton, 
+                  !autoRefresh && styles.controlButtonActive,
+                  isLargeScreen && styles.controlButtonLarge
+                ]} 
                 onPress={() => setAutoRefresh(!autoRefresh)}
               >
                 <Ionicons 
                   name={autoRefresh ? "pause-circle-outline" : "play-circle-outline"} 
-                  size={20} 
+                  size={isLargeScreen ? 24 : 20} 
                   color="#fff" 
                 />
-                <Text style={styles.controlText}>
+                <ResponsiveText variant="caption" style={styles.controlText}>
                   {autoRefresh ? "Pause Auto-Refresh" : "Resume Auto-Refresh"}
-                </Text>
+                </ResponsiveText>
               </Pressable>
               
               <Pressable 
-                style={styles.controlButton} 
+                style={[
+                  styles.controlButton,
+                  isLargeScreen && styles.controlButtonLarge
+                ]} 
                 onPress={() => fetchESPData(true)}
               >
-                <Ionicons name="refresh-outline" size={20} color="#fff" />
-                <Text style={styles.controlText}>Refresh Now</Text>
+                <Ionicons name="refresh-outline" size={isLargeScreen ? 24 : 20} color="#fff" />
+                <ResponsiveText variant="caption" style={styles.controlText}>Refresh Now</ResponsiveText>
               </Pressable>
               
-              <Text style={styles.lastUpdatedText}>
+              <ResponsiveText variant="caption" style={styles.lastUpdatedText}>
                 Last updated: {lastUpdated || 'Never'}
-              </Text>
+              </ResponsiveText>
+              
+              {isLargeScreen && (
+                <View style={styles.espInfoContainer}>
+                  <ResponsiveText variant="caption" style={styles.espInfoText}>
+                    Connected to ESP8266 at: {ESP_BASE}
+                  </ResponsiveText>
+                  <ResponsiveText variant="caption" style={styles.espInfoText}>
+                    To change the IP address, please visit the Settings page.
+                  </ResponsiveText>
+                </View>
+              )}
             </View>
           </ScrollView>
         </SafeAreaView>
@@ -542,12 +646,16 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     paddingTop: Platform.OS === 'android' ? 45 : 16,
   },
+  headerLarge: {
+    paddingHorizontal: 30,
+    paddingVertical: 24,
+    paddingTop: Platform.OS === 'android' ? 50 : 24,
+  },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
     marginLeft: 8,
@@ -593,7 +701,6 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusText: {
-    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
   },
   scrollView: {
@@ -603,8 +710,20 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 30,
   },
+  scrollContentLarge: {
+    padding: 30,
+    paddingBottom: 60,
+    maxWidth: 1100,
+    alignSelf: 'center',
+    width: '100%',
+  },
   mainCardContainer: {
     marginBottom: 20,
+  },
+  mainCardContainerLarge: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
   mainCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -618,19 +737,23 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     position: 'relative',
   },
+  mainCardLarge: {
+    flex: 1,
+    marginRight: 20,
+    marginBottom: 0,
+    padding: 24,
+  },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
   },
   cardTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
     marginLeft: 10,
   },
   cardTitleSmall: {
-    fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
     marginLeft: 8,
@@ -644,9 +767,15 @@ const styles = StyleSheet.create({
     fontSize: 60,
     fontWeight: 'bold',
   },
+  mainValueLarge: {
+    fontSize: 72,
+  },
   secondaryValue: {
     fontSize: 36,
     fontWeight: 'bold',
+  },
+  secondaryValueLarge: {
+    fontSize: 48,
   },
   unit: {
     fontSize: 20,
@@ -663,16 +792,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   rawText: {
-    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.6)',
   },
   smallText: {
-    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.8)',
   },
   secondaryCardsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  secondaryCardsContainerLarge: {
+    flex: 1,
+    flexDirection: 'column',
+    height: '100%',
   },
   secondaryCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -683,6 +815,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+  },
+  secondaryCardLarge: {
+    width: '100%',
+    marginBottom: 16,
+    padding: 20,
+    flex: 1,
   },
   infoOverlay: {
     position: 'absolute',
@@ -700,7 +838,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   infoTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 12,
@@ -717,7 +854,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   infoText: {
-    fontSize: 14,
     color: '#fff',
     flexShrink: 1,
   },
@@ -727,16 +863,17 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
   },
+  chartContainerLarge: {
+    padding: 24,
+  },
   chartHeader: {
     marginBottom: 16,
   },
   chartTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
   chartSubtitle: {
-    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.6)',
   },
   chartContent: {
@@ -754,7 +891,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chartLabel: {
-    fontSize: 14,
     color: '#fff',
     marginLeft: 8,
   },
@@ -770,9 +906,19 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     marginHorizontal: 1,
   },
+  chartBarLarge: {
+    width: 10,
+    borderRadius: 5,
+    marginHorizontal: 2,
+  },
   controlsContainer: {
     alignItems: 'center',
     marginBottom: 16,
+  },
+  controlsContainerLarge: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   },
   controlButton: {
     flexDirection: 'row',
@@ -783,16 +929,19 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginBottom: 12,
   },
+  controlButtonLarge: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginHorizontal: 8,
+  },
   controlButtonActive: {
     backgroundColor: 'rgba(220, 53, 69, 0.3)',
   },
   controlText: {
-    fontSize: 14,
     color: '#fff',
     marginLeft: 8,
   },
   lastUpdatedText: {
-    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.6)',
     marginTop: 4,
   },
@@ -807,5 +956,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#FF9500',
     fontWeight: 'bold',
+  },
+  espInfoContainer: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  espInfoText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 4,
   },
 }); 

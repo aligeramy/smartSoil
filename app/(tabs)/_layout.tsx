@@ -24,7 +24,6 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: bgColor,
           borderTopWidth: 0,
-          elevation: 0,
           shadowOpacity: 0,
         },
         headerShown: false,

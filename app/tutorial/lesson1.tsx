@@ -526,50 +526,90 @@ export default function Lesson1Screen() {
   const renderIoTSensorsStep = () => {
     return (
       <View style={styles.lessonContent}>
-        <View style={styles.sensorExplainerContainer}>
-          <View style={styles.sensorItem}>
-            <View style={styles.sensorImageContainer}>
-              <Image 
-                source={require('@/assets/sections/lesson-1/dht11.png')} // Replace with actual DHT11 image
-                style={styles.sensorImage}
-                resizeMode="contain"
-              />
+        <ScrollView 
+          style={styles.sensorScrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.sensorScrollContent}
+        >
+          <View style={styles.sensorExplainerContainer}>
+            <View style={styles.sensorItem}>
+              <View style={styles.sensorImageContainer}>
+                <Image 
+                  source={require('@/assets/sections/lesson-1/dht11.png')}
+                  style={styles.sensorImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.sensorDetails}>
+                <Text style={styles.sensorTitle}>DHT11 Temperature & Humidity</Text>
+                <Text style={styles.sensorDescription}>
+                  The DHT11 sensor measures air temperature and humidity.
+                </Text>
+              </View>
             </View>
-            <View style={styles.sensorDetails}>
-              <Text style={styles.sensorLabel}>DHT11 Temperature & Humidity</Text>
-              <Text style={styles.sensorDescription}>
-                The DHT11 sensor measures air temperature and humidity.
-              </Text>
-              <View style={styles.codeSnippet}>
-                <Text style={styles.codeComment}>// Define the DHT sensor</Text>
-                <Text style={styles.codeLine}>#define DHTPIN D4</Text>
-                <Text style={styles.codeComment}>// Initialize sensor</Text>
-                <Text style={styles.codeLine}>DHT dht(DHTPIN, DHTTYPE);</Text>
+            
+            <View style={styles.codeSnippet}>
+              <Text style={styles.codeComment}>// Define the DHT sensor</Text>
+              <Text style={styles.codeLine}>#define DHTPIN D4</Text>
+              <Text style={styles.codeComment}>// Initialize sensor</Text>
+              <Text style={styles.codeLine}>DHT dht(DHTPIN, DHTTYPE);</Text>
+            </View>
+            
+            <View style={styles.sensorItem}>
+              <View style={styles.sensorImageContainer}>
+                <Image 
+                  source={require('@/assets/sections/lesson-1/cap-sensor.png')}
+                  style={styles.sensorImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.sensorDetails}>
+                <Text style={styles.sensorTitle}>Capacitive Soil Moisture</Text>
+                <Text style={styles.sensorDescription}>
+                  The capacitive soil moisture sensor measures water content in soil.
+                </Text>
+              </View>
+            </View>
+            
+            <View style={styles.codeSnippet}>
+              <Text style={styles.codeComment}>// Define soil moisture sensor</Text>
+              <Text style={styles.codeLine}>#define SENSOR_PIN A0</Text>
+              <Text style={styles.codeComment}>// Read analog value</Text>
+              <Text style={styles.codeLine}>int value = analogRead(SENSOR_PIN);</Text>
+            </View>
+
+            <View style={styles.sensorApplicationContainer}>
+              <Text style={styles.applicationTitle}>Practical Applications</Text>
+              <View style={styles.applicationItem}>
+                <View style={styles.applicationIconContainer}>
+                  <MaterialCommunityIcons name="thermometer" size={24} color="white" />
+                </View>
+                <View style={styles.applicationTextContainer}>
+                  <Text style={styles.applicationText}>Monitor optimal growing conditions for your plants</Text>
+                </View>
+              </View>
+              <View style={styles.applicationItem}>
+                <View style={styles.applicationIconContainer}>
+                  <MaterialCommunityIcons name="water" size={24} color="white" />
+                </View>
+                <View style={styles.applicationTextContainer}>
+                  <Text style={styles.applicationText}>Automate watering based on soil moisture levels</Text>
+                </View>
+              </View>
+              <View style={styles.applicationItem}>
+                <View style={styles.applicationIconContainer}>
+                  <MaterialCommunityIcons name="calendar-clock" size={24} color="white" />
+                </View>
+                <View style={styles.applicationTextContainer}>
+                  <Text style={styles.applicationText}>Track environmental data over time to optimize plant care</Text>
+                </View>
               </View>
             </View>
           </View>
-          
-          <View style={[styles.sensorItem, {marginTop: 20}]}>
-            <View style={styles.sensorImageContainer}>
-              <Image 
-                source={require('@/assets/sections/lesson-1/cap-sensor.png')} // Replace with actual soil moisture sensor image
-                style={styles.sensorImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.sensorDetails}>
-              <Text style={styles.sensorLabel}>Capacitive Soil Moisture</Text>
-              <Text style={styles.sensorDescription}>
-                The capacitive soil moisture sensor measures water content in soil.
-              </Text>
-              <View style={styles.codeSnippet}>
-                <Text style={styles.codeComment}>// Define soil moisture sensor</Text>
-                <Text style={styles.codeLine}>#define SENSOR_PIN A0</Text>
-                <Text style={styles.codeComment}>// Read analog value</Text>
-                <Text style={styles.codeLine}>int value = analogRead(SENSOR_PIN);</Text>
-              </View>
-            </View>
-          </View>
+        </ScrollView>
+        <View style={styles.scrollIndicatorContainer}>
+          <MaterialCommunityIcons name="chevron-double-down" size={20} color="rgba(255, 255, 255, 0.6)" />
+          <Text style={styles.scrollIndicatorText}>Scroll for more</Text>
         </View>
       </View>
     );
@@ -833,11 +873,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
   stepContent: {
     width: '100%',
     alignItems: 'center',
+    flex: 1,
   },
   stepImage: {
     width: 280,
@@ -845,19 +887,21 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   stepTitle: {
-    fontSize: 32,
+    fontSize: Platform.OS === 'web' ? 36 : 28,
     fontWeight: 'bold',
     color: ColorPalette.white,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: Platform.OS === 'web' ? 20 : 12,
+    paddingHorizontal: 10,
   },
   stepDescription: {
-    fontSize: 18,
+    fontSize: Platform.OS === 'web' ? 18 : 16,
     color: ColorPalette.white,
     textAlign: 'center',
     opacity: 0.9,
-    lineHeight: 26,
-    marginBottom: 20,
+    lineHeight: Platform.OS === 'web' ? 28 : 24,
+    marginBottom: Platform.OS === 'web' ? 25 : 15,
+    paddingHorizontal: 15,
   },
   cardsContainer: {
     width: '100%',
@@ -1008,74 +1052,127 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginTop: 0,
+    flex: 1,
   },
   sensorExplainerContainer: {
     width: '100%',
-    maxWidth: 500,
-    paddingHorizontal: 5,
+    maxWidth: 600,
+    paddingHorizontal: Platform.OS === 'web' ? 20 : 5,
+    flexShrink: 1,
   },
   sensorItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 16,
     padding: 15,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    overflow: 'hidden',
+    marginBottom: 15,
   },
   sensorImageContainer: {
     width: 80,
-    height: 140,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    padding:10,
-    borderRadius: 8,
+    height: 80,
+    borderRadius: 12,
     marginRight: 15,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.15)',
   },
   sensorImage: {
-    width: '90%',
-    height: '90%',
+    width: '80%',
+    height: '80%',
     resizeMode: 'contain',
   },
   sensorDetails: {
     flex: 1,
   },
-  sensorLabel: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 4,
-  },
-  sensorValue: {
-    fontSize: 18,
+  sensorTitle: {
+    fontSize: Platform.OS === 'web' ? 20 : 18,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   sensorDescription: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: Platform.OS === 'web' ? 16 : 14,
+    color: 'rgba(255, 255, 255, 0.85)',
+    lineHeight: Platform.OS === 'web' ? 24 : 20,
+    flexWrap: 'wrap',
   },
   codeSnippet: {
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    padding: 10,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 10,
     width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(0,110,150,0.3)',
     marginTop: 10,
+    display: 'none',
+    
   },
   codeComment: {
     color: '#88c0d0',
-    fontSize: 10,
-    fontFamily: 'Menlo',
-    marginBottom: 0,
-
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : Platform.OS === 'android' ? 'monospace' : 'Menlo',
+    marginBottom: 3,
   },
   codeLine: {
     color: '#eceff4',
-    fontSize: 11,
-    fontFamily: 'Menlo',
-    marginBottom: 6,
+    fontSize: 13,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : Platform.OS === 'android' ? 'monospace' : 'Menlo',
+    marginBottom: 8,
   },
-  
+  sensorScrollView: {
+    width: '100%',
+    flex: 1,
+  },
+  sensorScrollContent: {
+    paddingVertical: 10,
+    paddingBottom: 20,
+  },
+  sensorApplicationContainer: {
+    width: '100%',
+    maxWidth: 600,
+    padding: 20,
+    marginTop: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16,
+  },
+  applicationTitle: {
+    fontSize: Platform.OS === 'web' ? 22 : 20,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  applicationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  applicationIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 5,
+  },
+  applicationTextContainer: {
+    flex: 1,
+  },
+  applicationText: {
+    fontSize: Platform.OS === 'web' ? 17 : 15,
+    color: 'white',
+    lineHeight: Platform.OS === 'web' ? 25 : 22,
+    flexWrap: 'wrap',
+  },
   // WiFi connection styles
   wifiContainer: {
     width: '100%',
@@ -1754,5 +1851,21 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  scrollIndicatorContainer: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 20,
+    alignSelf: 'center',
+    marginTop: 5,
+    marginBottom: 5,
+  },
+  scrollIndicatorText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 13,
+    marginLeft: 6,
   },
 }); 

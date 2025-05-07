@@ -8,7 +8,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
       }
     },
     "preview": {
@@ -36,15 +37,16 @@
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease",
+        "image": "ubuntu-22.04-jdk-17-ndk-r25b",
         "autoIncrement": true
       },
-      "env": {
-        "APP_VARIANT": "release"
-      },
+      "distribution": "store",
+      "autoIncrement": true,
       "resourceClass": "large",
-      "cache": {
-        "key": "optimized-v1"
-      }
+      "env": {
+        "APP_VARIANT": "optimized"
+      },
+      "prebuildCommand": "npm run generate:icons"
     },
     "androidAab": {
       "extends": "production",
@@ -57,23 +59,27 @@
   "submit": {
     "production": {
       "android": {
-        "track": "production",
-        "releaseStatus": "completed"
+        "serviceAccountKeyPath": "./google-play/service-account.json",
+        "track": "production"
       },
       "ios": {
-        "appleId": "ali@softxinnovations.ca"
+        "appleId": "your-apple-id@example.com",
+        "ascAppId": "1234567890",
+        "appleTeamId": "AB12345678"
       }
     },
     "internal": {
       "android": {
         "track": "internal",
-        "releaseStatus": "completed"
+        "releaseStatus": "completed",
+        "serviceAccountKeyPath": "./google-play/service-account.json"
       }
     },
     "beta": {
       "android": {
         "track": "beta",
-        "releaseStatus": "completed"
+        "releaseStatus": "completed",
+        "serviceAccountKeyPath": "./google-play/service-account.json"
       }
     }
   }

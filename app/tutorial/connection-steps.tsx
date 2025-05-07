@@ -493,7 +493,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
-    elevation: 4,
   },
   vccPin: {
     backgroundColor: '#FF3B30',

@@ -8,7 +8,7 @@
     "scheme": "smart-soil",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/logo/icon/splash.png",
+      "image": "./assets/images/logo/icon/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#063B1D"
     },
@@ -20,11 +20,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "icon": "./assets/images/ios/ios-tinted.png",
-      "alternateIcon": {
-        "light": "./assets/images/ios/ios-light.png",
-        "dark": "./assets/images/ios/ios-dark.png"
-      },
+      "icon": "./assets/images/logo/icon/icon.png",
       "userInterfaceStyle": "automatic",
       "bundleIdentifier": "com.softxinnovations.smartsoil",
       "buildNumber": "1.0.0",
@@ -43,8 +39,8 @@
         "foregroundImage": "./assets/images/logo/icon/adaptive-icon.png",
         "backgroundColor": "#063B1D"
       },
+      "icon": "./assets/images/logo/icon/icon.png",
       "edgeToEdgeEnabled": true,
-      "navigationBarColor": "#063B1D",
       "softwareKeyboardLayoutMode": "pan",
       "allowBackup": true,
       "permissions": [
@@ -54,13 +50,8 @@
         "BLUETOOTH",
         "BLUETOOTH_ADMIN"
       ],
-      "statusBar": {
-        "backgroundColor": "#063B1D",
-        "barStyle": "light-content",
-        "translucent": false
-      },
       "package": "com.softxinnovations.smartsoil",
-      "versionCode": 20,
+      "versionCode": 21,
       "intentFilters": [
         {
           "action": "VIEW",
@@ -86,18 +77,17 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/logo/icon/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#013B1A"
+          "backgroundColor": "#063B1D"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
     },
-    "privacy": "unlisted",
-    "description": "SmartSoil is an IoT walication that helps gardeners and plant enthusiasts monitor soil moisture, temperature, and humidity using ESP8266-based sensors. Get real-time data, view historical trends, and receive watering recommendations for healthier plants.",
+    "description": "SmartSoil is an IoT application that helps gardeners and plant enthusiasts monitor soil moisture, temperature, and humidity using ESP8266-based sensors. Get real-time data, view historical trends, and receive watering recommendations for healthier plants.",
     "githubUrl": "https://github.com/yourusername/smartsoil",
     "owner": "softxinnovations",
     "extra": {
@@ -119,26 +109,6 @@
     },
     "developmentClient": {
       "silentLaunch": false
-    },
-    "hooks": {
-      "postPublish": [
-        {
-          "file": "sentry-expo/upload-sourcemaps",
-          "config": {
-            "organization": "softxinnovations",
-            "project": "smartsoil"
-          }
-        }
-      ]
-    },
-    "notification": {
-      "icon": "./assets/images/logo/icon/notification-icon.png",
-      "color": "#063B1D",
-      "iosDisplayInForeground": true
-    },
-    "appStoreUrl": "https://apps.apple.com/app/smartsoil/id1234567890",
-    "playStoreUrl": "https://play.google.com/store/apps/details?id=com.softxinnovations.smartsoil",
-    "privacyPolicyUrl": "https://www.smartsoil-app.com/privacy",
-    "termsOfServiceUrl": "https://www.smartsoil-app.com/terms"
+    }
   }
 }

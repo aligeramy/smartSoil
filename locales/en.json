@@ -1,0 +1,50 @@
+{
+  "app": {
+    "name": "SmartSoil",
+    "slogan": "Grow Smarter with SmartSoil"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done"
+  },
+  "home": {
+    "title": "Dashboard",
+    "sensors": "My Sensors",
+    "recommendations": "Recommendations",
+    "history": "History"
+  },
+  "sensors": {
+    "title": "Sensors",
+    "add": "Add Sensor",
+    "details": "Sensor Details",
+    "moisture": "Moisture",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "battery": "Battery"
+  },
+  "plants": {
+    "title": "Plants",
+    "add": "Add Plant",
+    "details": "Plant Details",
+    "watering": "Watering Schedule",
+    "soil": "Soil Type",
+    "sunlight": "Sunlight"
+  },
+  "settings": {
+    "title": "Settings",
+    "account": "Account",
+    "notifications": "Notifications",
+    "language": "Language",
+    "theme": "Theme",
+    "help": "Help & Support",
+    "about": "About SmartSoil"
+  }
+} 
