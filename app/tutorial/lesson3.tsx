@@ -268,138 +268,67 @@ const ModelFeatureGameComponent = () => {
   };
 
   return (
-    <View style={styles.lessonContent}>
-      {/* Model Performance at the top */}
-      <View style={styles.metricsContainer}>
-        <View style={styles.metricsHeader}>
-          <Text style={styles.metricsTitle}>Model Performance</Text>
-          <Pressable
-            onPress={handleReset}
-            style={[styles.resetButton, selectedFeatures.length === 0 && styles.resetButtonDisabled]}
-            disabled={selectedFeatures.length === 0}
-          >
-            <Text style={styles.resetButtonText}>
-              Reset
-            </Text>
-          </Pressable>
-        </View>
-        
-        {!currentMetrics ? (
-          <Text style={styles.metricsPlaceholder}>
-            Add features below to see model performance metrics
-          </Text>
-        ) : (
-          <>
-            <View style={styles.metricsGrid}>
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Accuracy</Text>
-                <Text style={[styles.metricValue, { color: '#23C552' }]}>
-                  {currentMetrics.accuracy.toFixed(2)}
-                </Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Specificity</Text>
-                <Text style={[styles.metricValue, { color: '#23C552' }]}>
-                  {currentMetrics.specificity.toFixed(2)}
-                </Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Sensitivity</Text>
-                <Text style={[styles.metricValue, { color: '#FF9500' }]}>
-                  {currentMetrics.sensitivity.toFixed(2)}
-                </Text>
-              </View>
-            </View>
+    <View style={styles.featureGameContainer}>
+      {/* Scrollable Content */}
+      <View style={styles.scrollableContent}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Equation Builder */}
+          <View style={styles.equationContainer}>
+            <Text style={styles.equationTitle}>Time to Water =</Text>
             
-            <View style={styles.metricsGrid}>
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>AUC</Text>
-                <Text style={[styles.metricValue, { color: '#FF3B30' }]}>
-                  {typeof currentMetrics.auc === 'number' 
-                    ? currentMetrics.auc.toFixed(2) 
-                    : currentMetrics.auc}
-                </Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>Precision</Text>
-                <Text style={[styles.metricValue, { color: '#23C552' }]}>
-                  {typeof currentMetrics.precision === 'number' 
-                    ? currentMetrics.precision.toFixed(2) 
-                    : currentMetrics.precision}
-                </Text>
-              </View>
-              
-              <View style={styles.metricItem}>
-                <Text style={styles.metricLabel}>F1</Text>
-                <Text style={[styles.metricValue, { color: '#23C552' }]}>
-                  {typeof currentMetrics.f1 === 'number' 
-                    ? currentMetrics.f1.toFixed(2) 
-                    : currentMetrics.f1}
-                </Text>
-              </View>
-            </View>
-          </>
-        )}
-      </View>
-      
-      {/* Equation Builder - Full width */}
-      <View style={styles.equationContainer}>
-        <Text style={styles.equationTitle}>Time to Water =</Text>
-        
-        <View style={styles.equationContent}>
-          {selectedFeatures.length === 0 ? (
-            <Text style={styles.equationPlaceholder}>Tap features below to add them</Text>
-          ) : (
-            <View style={styles.selectedFeaturesContainer}>
-              {selectedFeatures.map((feature, index) => (
-                <View key={feature.id} style={styles.featureRowContainer}>
-                  <View style={styles.selectedFeature}>
-                    <Text style={styles.selectedFeatureText}>
-                      {feature.name.replace(/_/g, " ")}
-                    </Text>
-                    <Pressable
-                      onPress={() => handleRemoveFeature(feature.id)}
-                      style={styles.removeFeatureButton}
-                    >
-                      <Ionicons name="close-circle" size={18} color="#FF3B30" />
-                    </Pressable>
-                  </View>
-                  {index < selectedFeatures.length - 1 && (
-                    <Text style={styles.featureOperator}>+</Text>
-                  )}
+            <View style={styles.equationContent}>
+              {selectedFeatures.length === 0 ? (
+                <Text style={styles.equationPlaceholder}>Tap features below to add them</Text>
+              ) : (
+                <View style={styles.selectedFeaturesContainer}>
+                  {selectedFeatures.map((feature, index) => (
+                    <View key={feature.id} style={styles.featureRowContainer}>
+                      <View style={styles.selectedFeature}>
+                        <Text style={styles.selectedFeatureText}>
+                          {feature.name.replace(/_/g, " ")}
+                        </Text>
+                        <Pressable
+                          onPress={() => handleRemoveFeature(feature.id)}
+                          style={styles.removeFeatureButton}
+                        >
+                          <Ionicons name="close-circle" size={18} color="#FF3B30" />
+                        </Pressable>
+                      </View>
+                      {index < selectedFeatures.length - 1 && (
+                        <Text style={styles.featureOperator}>+</Text>
+                      )}
+                    </View>
+                  ))}
                 </View>
+              )}
+            </View>
+          </View>
+          
+          {/* Available Features */}
+          <View style={styles.availableFeaturesContainer}>
+            <Text style={styles.featuresTitle}>Available Features</Text>
+            
+            <View style={styles.featuresGrid}>
+              {availableFeatures.map((feature) => (
+                <Pressable
+                  key={feature.id}
+                  style={styles.featurePill}
+                  onPress={() => handleAddFeature(feature)}
+                >
+                  <Text style={styles.featurePillText}>
+                    {feature.name.replace(/_/g, " ")}
+                  </Text>
+                </Pressable>
               ))}
             </View>
-          )}
-        </View>
-      </View>
-      
-      {/* Available Features */}
-      <View style={styles.availableFeaturesContainer}>
-        <Text style={styles.featuresTitle}>Available Features</Text>
-        
-        <View style={styles.featuresGrid}>
-          {availableFeatures.map((feature) => (
-            <Pressable
-              key={feature.id}
-              style={styles.featurePill}
-              onPress={() => handleAddFeature(feature)}
-            >
-              <Text style={styles.featurePillText}>
-                {feature.name.replace(/_/g, " ")}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-      
-      {/* Confusion Matrix */}
-      {currentMetrics && (
-        <>
-          {showConfusionMatrix && (
+          </View>
+          
+          {/* Confusion Matrix - Only shown when toggled */}
+          {currentMetrics && showConfusionMatrix && (
             <View style={styles.confusionMatrix}>
               <View style={styles.matrixHeader}>
                 <Text style={styles.matrixTitle}>Confusion Matrix</Text>
@@ -458,16 +387,68 @@ const ModelFeatureGameComponent = () => {
             </View>
           )}
           
-          <Pressable
-            style={styles.matrixButton}
-            onPress={() => setShowConfusionMatrix(!showConfusionMatrix)}
-          >
-            <Text style={styles.matrixButtonText}>
-              {showConfusionMatrix ? 'Hide' : 'Show'} Confusion Matrix
+          {/* Bottom padding to ensure content above fixed card is visible */}
+          <View style={styles.bottomPadding} />
+        </ScrollView>
+      </View>
+      
+      {/* Fixed Model Performance Card at bottom */}
+      <View style={styles.fixedBottomCard}>
+        <View style={styles.performanceWrapper}>
+          <View style={styles.metricsHeader}>
+            <Text style={styles.metricsTitle}>Model Performance</Text>
+            <Pressable
+              onPress={handleReset}
+              style={[styles.resetButton, selectedFeatures.length === 0 && styles.resetButtonDisabled]}
+              disabled={selectedFeatures.length === 0}
+            >
+              <Text style={styles.resetButtonText}>
+                Reset
+              </Text>
+            </Pressable>
+          </View>
+          
+          {!currentMetrics ? (
+            <Text style={styles.metricsPlaceholder}>
+              Add features above to see model performance metrics
             </Text>
-          </Pressable>
-        </>
-      )}
+          ) : (
+            <>
+              <View style={styles.metricsGrid}>
+                <View style={styles.metricItem}>
+                  <Text style={styles.metricLabel}>Accuracy</Text>
+                  <Text style={[styles.metricValue, { color: '#23C552' }]}>
+                    {currentMetrics.accuracy.toFixed(2)}
+                  </Text>
+                </View>
+                
+                <View style={styles.metricItem}>
+                  <Text style={styles.metricLabel}>Specificity</Text>
+                  <Text style={[styles.metricValue, { color: '#23C552' }]}>
+                    {currentMetrics.specificity.toFixed(2)}
+                  </Text>
+                </View>
+                
+                <View style={styles.metricItem}>
+                  <Text style={styles.metricLabel}>Sensitivity</Text>
+                  <Text style={[styles.metricValue, { color: '#FF9500' }]}>
+                    {currentMetrics.sensitivity.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+              
+              <Pressable
+                style={styles.matrixButton}
+                onPress={() => setShowConfusionMatrix(!showConfusionMatrix)}
+              >
+                <Text style={styles.matrixButtonText}>
+                  {showConfusionMatrix ? 'Hide' : 'Show'} Confusion Matrix
+                </Text>
+              </Pressable>
+            </>
+          )}
+        </View>
+      </View>
     </View>
   );
 };
@@ -1390,10 +1371,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   metricsPlaceholder: {
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 14,
     textAlign: 'center',
-    padding: 16,
+    padding: 8,
   },
   metricsGrid: {
     flexDirection: 'row',
@@ -1417,11 +1398,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   matrixButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.15)',
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 6,
+    padding: 8,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 8,
   },
   matrixButtonText: {
     color: 'white',
@@ -1836,5 +1817,61 @@ const styles = StyleSheet.create({
   },
   wateringToolContent: {
     paddingHorizontal: 0,
+  },
+  featureGameContainer: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+    alignSelf: 'stretch',
+    height: '100%',
+    marginTop: 10,
+  },
+  scrollableContent: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+    alignSelf: 'stretch',
+    height: '100%',
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+    alignSelf: 'stretch',
+    height: '100%',
+  },
+  scrollViewContent: {
+    padding: 15,
+    paddingBottom: 120, // Increased to allow space for fixed bottom card
+    width: '100%',
+  },
+  fixedBottomCard: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    padding: 10,
+    backgroundColor: 'rgba(18, 53, 36, 0.95)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+    zIndex: 999,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+  },
+  performanceWrapper: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 0,
+  },
+  bottomPadding: {
+    height: 120, // Increased to ensure enough space
   },
 }); 
