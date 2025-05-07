@@ -855,6 +855,8 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     alignSelf: 'stretch',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   stepContent: {
     width: '100%',
@@ -929,15 +931,16 @@ const styles = StyleSheet.create({
   lessonContent: {
     width: '100%',
     maxWidth: 350,
-    alignItems: 'center',
+    alignItems: Platform.OS === 'web' ? 'center' : 'flex-start',
+    alignSelf: 'center',
   },
   contentCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
     width: '100%',
     marginBottom: 15,
-    alignSelf: 'center',
+    alignSelf: Platform.OS === 'web' ? 'center' : 'auto',
   },
   cardSectionTitle: {
     fontSize: 18,
