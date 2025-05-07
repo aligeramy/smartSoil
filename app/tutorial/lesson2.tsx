@@ -1,7 +1,6 @@
 import { useTutorial } from '@/app/context/TutorialContext';
 import { Colors as ColorPalette } from '@/constants/Colors';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -71,7 +70,6 @@ const mockSensorData = {
 
 // Constants
 let ESP_BASE = "http://192.168.4.1"; // ESP8266 base URL in AP mode
-const ESP_IP_STORAGE_KEY = 'esp_ip_address';
 
 // First component - Introduction to Data Visualization
 const DataVisualizationIntro = () => {
@@ -743,23 +741,6 @@ export default function Lesson2Screen() {
       transform: [{ scale: skipBtnScale.value }],
     };
   });
-  
-  // Load ESP IP from storage
-  useEffect(() => {
-    const loadESPIP = async () => {
-      try {
-        const storedIP = await AsyncStorage.getItem(ESP_IP_STORAGE_KEY);
-        if (storedIP) {
-          ESP_BASE = `http://${storedIP}`;
-          console.log('Loaded ESP IP:', ESP_BASE);
-        }
-      } catch (error) {
-        console.error('Failed to load ESP IP:', error);
-      }
-    };
-    
-    loadESPIP();
-  }, []);
   
   // Initialize lesson progress when component mounts
   useEffect(() => {

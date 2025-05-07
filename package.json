@@ -17,12 +17,11 @@
     "build:web": "npx expo export --platform web",
     "vercel-build": "npm run build:web && node scripts/fix-web-fonts.js",
     "serve:web": "npx serve web-build",
-    "deploy:web": "npx vercel web-build --confirm",
-    "generate:icons": "./scripts/build-icons.sh",
-    "prepare:icons": "node ./scripts/generate-icons.js"
+    "deploy:web": "npx vercel web-build --confirm"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
+    "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/slider": "^4.5.6",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",

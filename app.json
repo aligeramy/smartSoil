@@ -32,7 +32,8 @@
       },
       "associatedDomains": [
         "applinks:smartsoil-app.com"
-      ]
+      ],
+      "appleTeamId": "23MN72U7PA"
     },
     "android": {
       "adaptiveIcon": {
