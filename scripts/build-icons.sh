@@ -7,10 +7,31 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Handle arguments
+PLATFORM=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --platform)
+      PLATFORM="$2"
+      shift 2
+      ;;
+    *)
+      # Skip unknown arguments
+      shift
+      ;;
+  esac
+done
+
 # Print banner
 echo -e "${BLUE}===========================================${NC}"
 echo -e "${BLUE}  SmartSoil Icon Generator               ${NC}"
 echo -e "${BLUE}===========================================${NC}"
+
+if [ ! -z "$PLATFORM" ]; then
+  echo -e "${BLUE}Platform: $PLATFORM${NC}"
+fi
 
 # Check if ImageMagick is installed
 if ! command -v convert &> /dev/null; then
@@ -53,80 +74,160 @@ mkdir -p "$ANDROID_DIR"
 
 echo -e "${GREEN}✓ Output directories created${NC}"
 
-# Generate iOS icons
-echo -e "\n${BLUE}Generating iOS icons...${NC}"
-
-# App Store
-convert "$SOURCE_ICON" -resize 1024x1024 "$IOS_DIR/app-store-icon.png"
-echo -e "${GREEN}✓ Generated App Store icon (1024x1024)${NC}"
-
-# iPhone Icons
-convert "$SOURCE_ICON" -resize 60x60 "$IOS_DIR/icon-60.png"
-convert "$SOURCE_ICON" -resize 120x120 "$IOS_DIR/icon-60@2x.png"
-convert "$SOURCE_ICON" -resize 180x180 "$IOS_DIR/icon-60@3x.png"
-echo -e "${GREEN}✓ Generated iPhone icons${NC}"
-
-# iPad Icons
-convert "$SOURCE_ICON" -resize 76x76 "$IOS_DIR/icon-76.png"
-convert "$SOURCE_ICON" -resize 152x152 "$IOS_DIR/icon-76@2x.png"
-convert "$SOURCE_ICON" -resize 167x167 "$IOS_DIR/icon-83.5@2x.png"
-echo -e "${GREEN}✓ Generated iPad icons${NC}"
-
-# Spotlight Icons
-convert "$SOURCE_ICON" -resize 40x40 "$IOS_DIR/icon-40.png"
-convert "$SOURCE_ICON" -resize 80x80 "$IOS_DIR/icon-40@2x.png"
-convert "$SOURCE_ICON" -resize 120x120 "$IOS_DIR/icon-40@3x.png"
-echo -e "${GREEN}✓ Generated Spotlight icons${NC}"
-
-# Settings Icons
-convert "$SOURCE_ICON" -resize 29x29 "$IOS_DIR/icon-29.png"
-convert "$SOURCE_ICON" -resize 58x58 "$IOS_DIR/icon-29@2x.png"
-convert "$SOURCE_ICON" -resize 87x87 "$IOS_DIR/icon-29@3x.png"
-echo -e "${GREEN}✓ Generated Settings icons${NC}"
-
-# Notification Icons
-convert "$SOURCE_ICON" -resize 20x20 "$IOS_DIR/icon-20.png"
-convert "$SOURCE_ICON" -resize 40x40 "$IOS_DIR/icon-20@2x.png"
-convert "$SOURCE_ICON" -resize 60x60 "$IOS_DIR/icon-20@3x.png"
-echo -e "${GREEN}✓ Generated Notification icons${NC}"
-
-# Generate Android icons
-echo -e "\n${BLUE}Generating Android icons...${NC}"
-
-# Create Android mipmap directories
-mkdir -p "$ANDROID_DIR/mipmap-mdpi"
-mkdir -p "$ANDROID_DIR/mipmap-hdpi"
-mkdir -p "$ANDROID_DIR/mipmap-xhdpi"
-mkdir -p "$ANDROID_DIR/mipmap-xxhdpi"
-mkdir -p "$ANDROID_DIR/mipmap-xxxhdpi"
-
-# Regular Icons
-convert "$SOURCE_ICON" -resize 48x48 "$ANDROID_DIR/mipmap-mdpi/ic_launcher.png"
-convert "$SOURCE_ICON" -resize 72x72 "$ANDROID_DIR/mipmap-hdpi/ic_launcher.png"
-convert "$SOURCE_ICON" -resize 96x96 "$ANDROID_DIR/mipmap-xhdpi/ic_launcher.png"
-convert "$SOURCE_ICON" -resize 144x144 "$ANDROID_DIR/mipmap-xxhdpi/ic_launcher.png"
-convert "$SOURCE_ICON" -resize 192x192 "$ANDROID_DIR/mipmap-xxxhdpi/ic_launcher.png"
-echo -e "${GREEN}✓ Generated regular Android icons${NC}"
-
-# Adaptive Icons - Foreground
-convert "$ADAPTIVE_ICON" -resize 108x108 "$ANDROID_DIR/mipmap-mdpi/ic_launcher_foreground.png"
-convert "$ADAPTIVE_ICON" -resize 162x162 "$ANDROID_DIR/mipmap-hdpi/ic_launcher_foreground.png"
-convert "$ADAPTIVE_ICON" -resize 216x216 "$ANDROID_DIR/mipmap-xhdpi/ic_launcher_foreground.png"
-convert "$ADAPTIVE_ICON" -resize 324x324 "$ANDROID_DIR/mipmap-xxhdpi/ic_launcher_foreground.png"
-convert "$ADAPTIVE_ICON" -resize 432x432 "$ANDROID_DIR/mipmap-xxxhdpi/ic_launcher_foreground.png"
-echo -e "${GREEN}✓ Generated adaptive foreground icons${NC}"
-
-# Adaptive Icons - Background (solid color)
-convert -size 108x108 xc:$BG_COLOR "$ANDROID_DIR/mipmap-mdpi/ic_launcher_background.png"
-convert -size 162x162 xc:$BG_COLOR "$ANDROID_DIR/mipmap-hdpi/ic_launcher_background.png"
-convert -size 216x216 xc:$BG_COLOR "$ANDROID_DIR/mipmap-xhdpi/ic_launcher_background.png"
-convert -size 324x324 xc:$BG_COLOR "$ANDROID_DIR/mipmap-xxhdpi/ic_launcher_background.png"
-convert -size 432x432 xc:$BG_COLOR "$ANDROID_DIR/mipmap-xxxhdpi/ic_launcher_background.png"
-echo -e "${GREEN}✓ Generated adaptive background icons${NC}"
-
-# Play Store Icon
-convert "$SOURCE_ICON" -resize 512x512 "$ANDROID_DIR/play-store-icon.png"
-echo -e "${GREEN}✓ Generated Play Store icon${NC}"
+# Generate icons based on platform if specified
+if [ "$PLATFORM" = "ios" ]; then
+    # Generate only iOS icons
+    echo -e "\n${BLUE}Generating iOS icons...${NC}"
+    
+    # App Store
+    convert "$SOURCE_ICON" -resize 1024x1024 "$IOS_DIR/app-store-icon.png"
+    echo -e "${GREEN}✓ Generated App Store icon (1024x1024)${NC}"
+    
+    # iPhone Icons
+    convert "$SOURCE_ICON" -resize 60x60 "$IOS_DIR/icon-60.png"
+    convert "$SOURCE_ICON" -resize 120x120 "$IOS_DIR/icon-60@2x.png"
+    convert "$SOURCE_ICON" -resize 180x180 "$IOS_DIR/icon-60@3x.png"
+    echo -e "${GREEN}✓ Generated iPhone icons${NC}"
+    
+    # iPad Icons
+    convert "$SOURCE_ICON" -resize 76x76 "$IOS_DIR/icon-76.png"
+    convert "$SOURCE_ICON" -resize 152x152 "$IOS_DIR/icon-76@2x.png"
+    convert "$SOURCE_ICON" -resize 167x167 "$IOS_DIR/icon-83.5@2x.png"
+    echo -e "${GREEN}✓ Generated iPad icons${NC}"
+    
+    # Spotlight Icons
+    convert "$SOURCE_ICON" -resize 40x40 "$IOS_DIR/icon-40.png"
+    convert "$SOURCE_ICON" -resize 80x80 "$IOS_DIR/icon-40@2x.png"
+    convert "$SOURCE_ICON" -resize 120x120 "$IOS_DIR/icon-40@3x.png"
+    echo -e "${GREEN}✓ Generated Spotlight icons${NC}"
+    
+    # Settings Icons
+    convert "$SOURCE_ICON" -resize 29x29 "$IOS_DIR/icon-29.png"
+    convert "$SOURCE_ICON" -resize 58x58 "$IOS_DIR/icon-29@2x.png"
+    convert "$SOURCE_ICON" -resize 87x87 "$IOS_DIR/icon-29@3x.png"
+    echo -e "${GREEN}✓ Generated Settings icons${NC}"
+    
+    # Notification Icons
+    convert "$SOURCE_ICON" -resize 20x20 "$IOS_DIR/icon-20.png"
+    convert "$SOURCE_ICON" -resize 40x40 "$IOS_DIR/icon-20@2x.png"
+    convert "$SOURCE_ICON" -resize 60x60 "$IOS_DIR/icon-20@3x.png"
+    echo -e "${GREEN}✓ Generated Notification icons${NC}"
+    
+elif [ "$PLATFORM" = "android" ]; then
+    # Generate only Android icons
+    echo -e "\n${BLUE}Generating Android icons...${NC}"
+    
+    # Create Android mipmap directories
+    mkdir -p "$ANDROID_DIR/mipmap-mdpi"
+    mkdir -p "$ANDROID_DIR/mipmap-hdpi"
+    mkdir -p "$ANDROID_DIR/mipmap-xhdpi"
+    mkdir -p "$ANDROID_DIR/mipmap-xxhdpi"
+    mkdir -p "$ANDROID_DIR/mipmap-xxxhdpi"
+    
+    # Regular Icons
+    convert "$SOURCE_ICON" -resize 48x48 "$ANDROID_DIR/mipmap-mdpi/ic_launcher.png"
+    convert "$SOURCE_ICON" -resize 72x72 "$ANDROID_DIR/mipmap-hdpi/ic_launcher.png"
+    convert "$SOURCE_ICON" -resize 96x96 "$ANDROID_DIR/mipmap-xhdpi/ic_launcher.png"
+    convert "$SOURCE_ICON" -resize 144x144 "$ANDROID_DIR/mipmap-xxhdpi/ic_launcher.png"
+    convert "$SOURCE_ICON" -resize 192x192 "$ANDROID_DIR/mipmap-xxxhdpi/ic_launcher.png"
+    echo -e "${GREEN}✓ Generated regular Android icons${NC}"
+    
+    # Adaptive Icons - Foreground
+    convert "$ADAPTIVE_ICON" -resize 108x108 "$ANDROID_DIR/mipmap-mdpi/ic_launcher_foreground.png"
+    convert "$ADAPTIVE_ICON" -resize 162x162 "$ANDROID_DIR/mipmap-hdpi/ic_launcher_foreground.png"
+    convert "$ADAPTIVE_ICON" -resize 216x216 "$ANDROID_DIR/mipmap-xhdpi/ic_launcher_foreground.png"
+    convert "$ADAPTIVE_ICON" -resize 324x324 "$ANDROID_DIR/mipmap-xxhdpi/ic_launcher_foreground.png"
+    convert "$ADAPTIVE_ICON" -resize 432x432 "$ANDROID_DIR/mipmap-xxxhdpi/ic_launcher_foreground.png"
+    echo -e "${GREEN}✓ Generated adaptive foreground icons${NC}"
+    
+    # Adaptive Icons - Background (solid color)
+    convert -size 108x108 xc:$BG_COLOR "$ANDROID_DIR/mipmap-mdpi/ic_launcher_background.png"
+    convert -size 162x162 xc:$BG_COLOR "$ANDROID_DIR/mipmap-hdpi/ic_launcher_background.png"
+    convert -size 216x216 xc:$BG_COLOR "$ANDROID_DIR/mipmap-xhdpi/ic_launcher_background.png"
+    convert -size 324x324 xc:$BG_COLOR "$ANDROID_DIR/mipmap-xxhdpi/ic_launcher_background.png"
+    convert -size 432x432 xc:$BG_COLOR "$ANDROID_DIR/mipmap-xxxhdpi/ic_launcher_background.png"
+    echo -e "${GREEN}✓ Generated adaptive background icons${NC}"
+    
+    # Play Store Icon
+    convert "$SOURCE_ICON" -resize 512x512 "$ANDROID_DIR/play-store-icon.png"
+    echo -e "${GREEN}✓ Generated Play Store icon${NC}"
+    
+else
+    # Generate icons for both platforms
+    echo -e "\n${BLUE}Generating iOS icons...${NC}"
+    
+    # App Store
+    convert "$SOURCE_ICON" -resize 1024x1024 "$IOS_DIR/app-store-icon.png"
+    echo -e "${GREEN}✓ Generated App Store icon (1024x1024)${NC}"
+    
+    # iPhone Icons
+    convert "$SOURCE_ICON" -resize 60x60 "$IOS_DIR/icon-60.png"
+    convert "$SOURCE_ICON" -resize 120x120 "$IOS_DIR/icon-60@2x.png"
+    convert "$SOURCE_ICON" -resize 180x180 "$IOS_DIR/icon-60@3x.png"
+    echo -e "${GREEN}✓ Generated iPhone icons${NC}"
+    
+    # iPad Icons
+    convert "$SOURCE_ICON" -resize 76x76 "$IOS_DIR/icon-76.png"
+    convert "$SOURCE_ICON" -resize 152x152 "$IOS_DIR/icon-76@2x.png"
+    convert "$SOURCE_ICON" -resize 167x167 "$IOS_DIR/icon-83.5@2x.png"
+    echo -e "${GREEN}✓ Generated iPad icons${NC}"
+    
+    # Spotlight Icons
+    convert "$SOURCE_ICON" -resize 40x40 "$IOS_DIR/icon-40.png"
+    convert "$SOURCE_ICON" -resize 80x80 "$IOS_DIR/icon-40@2x.png"
+    convert "$SOURCE_ICON" -resize 120x120 "$IOS_DIR/icon-40@3x.png"
+    echo -e "${GREEN}✓ Generated Spotlight icons${NC}"
+    
+    # Settings Icons
+    convert "$SOURCE_ICON" -resize 29x29 "$IOS_DIR/icon-29.png"
+    convert "$SOURCE_ICON" -resize 58x58 "$IOS_DIR/icon-29@2x.png"
+    convert "$SOURCE_ICON" -resize 87x87 "$IOS_DIR/icon-29@3x.png"
+    echo -e "${GREEN}✓ Generated Settings icons${NC}"
+    
+    # Notification Icons
+    convert "$SOURCE_ICON" -resize 20x20 "$IOS_DIR/icon-20.png"
+    convert "$SOURCE_ICON" -resize 40x40 "$IOS_DIR/icon-20@2x.png"
+    convert "$SOURCE_ICON" -resize 60x60 "$IOS_DIR/icon-20@3x.png"
+    echo -e "${GREEN}✓ Generated Notification icons${NC}"
+    
+    # Generate Android icons
+    echo -e "\n${BLUE}Generating Android icons...${NC}"
+    
+    # Create Android mipmap directories
+    mkdir -p "$ANDROID_DIR/mipmap-mdpi"
+    mkdir -p "$ANDROID_DIR/mipmap-hdpi"
+    mkdir -p "$ANDROID_DIR/mipmap-xhdpi"
+    mkdir -p "$ANDROID_DIR/mipmap-xxhdpi"
+    mkdir -p "$ANDROID_DIR/mipmap-xxxhdpi"
+    
+    # Regular Icons
+    convert "$SOURCE_ICON" -resize 48x48 "$ANDROID_DIR/mipmap-mdpi/ic_launcher.png"
+    convert "$SOURCE_ICON" -resize 72x72 "$ANDROID_DIR/mipmap-hdpi/ic_launcher.png"
+    convert "$SOURCE_ICON" -resize 96x96 "$ANDROID_DIR/mipmap-xhdpi/ic_launcher.png"
+    convert "$SOURCE_ICON" -resize 144x144 "$ANDROID_DIR/mipmap-xxhdpi/ic_launcher.png"
+    convert "$SOURCE_ICON" -resize 192x192 "$ANDROID_DIR/mipmap-xxxhdpi/ic_launcher.png"
+    echo -e "${GREEN}✓ Generated regular Android icons${NC}"
+    
+    # Adaptive Icons - Foreground
+    convert "$ADAPTIVE_ICON" -resize 108x108 "$ANDROID_DIR/mipmap-mdpi/ic_launcher_foreground.png"
+    convert "$ADAPTIVE_ICON" -resize 162x162 "$ANDROID_DIR/mipmap-hdpi/ic_launcher_foreground.png"
+    convert "$ADAPTIVE_ICON" -resize 216x216 "$ANDROID_DIR/mipmap-xhdpi/ic_launcher_foreground.png"
+    convert "$ADAPTIVE_ICON" -resize 324x324 "$ANDROID_DIR/mipmap-xxhdpi/ic_launcher_foreground.png"
+    convert "$ADAPTIVE_ICON" -resize 432x432 "$ANDROID_DIR/mipmap-xxxhdpi/ic_launcher_foreground.png"
+    echo -e "${GREEN}✓ Generated adaptive foreground icons${NC}"
+    
+    # Adaptive Icons - Background (solid color)
+    convert -size 108x108 xc:$BG_COLOR "$ANDROID_DIR/mipmap-mdpi/ic_launcher_background.png"
+    convert -size 162x162 xc:$BG_COLOR "$ANDROID_DIR/mipmap-hdpi/ic_launcher_background.png"
+    convert -size 216x216 xc:$BG_COLOR "$ANDROID_DIR/mipmap-xhdpi/ic_launcher_background.png"
+    convert -size 324x324 xc:$BG_COLOR "$ANDROID_DIR/mipmap-xxhdpi/ic_launcher_background.png"
+    convert -size 432x432 xc:$BG_COLOR "$ANDROID_DIR/mipmap-xxxhdpi/ic_launcher_background.png"
+    echo -e "${GREEN}✓ Generated adaptive background icons${NC}"
+    
+    # Play Store Icon
+    convert "$SOURCE_ICON" -resize 512x512 "$ANDROID_DIR/play-store-icon.png"
+    echo -e "${GREEN}✓ Generated Play Store icon${NC}"
+fi
 
 # Summary
 echo -e "\n${BLUE}===========================================${NC}"
