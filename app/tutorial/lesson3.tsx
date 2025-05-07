@@ -327,66 +327,6 @@ const ModelFeatureGameComponent = () => {
             </View>
           </View>
           
-          {/* Confusion Matrix - Only shown when toggled */}
-          {currentMetrics && showConfusionMatrix && (
-            <View style={styles.confusionMatrix}>
-              <View style={styles.matrixHeader}>
-                <Text style={styles.matrixTitle}>Confusion Matrix</Text>
-                <Text style={styles.matrixSubtitle}>Actual vs Predicted</Text>
-              </View>
-              
-              <View style={styles.matrixGrid}>
-                {/* True Positive */}
-                <View style={[styles.matrixCell, styles.tpCell]}>
-                  <Text style={styles.matrixValue}>
-                    {Math.round((currentMetrics.confusionMatrix["True Positive"] / 
-                      (currentMetrics.confusionMatrix["True Positive"] + 
-                       currentMetrics.confusionMatrix["False Negative"] + 
-                       currentMetrics.confusionMatrix["False Positive"] + 
-                       currentMetrics.confusionMatrix["True Negative"])) * 100)}%
-                  </Text>
-                  <Text style={styles.matrixLabel}>True Positive</Text>
-                </View>
-                
-                {/* False Negative */}
-                <View style={[styles.matrixCell, styles.fnCell]}>
-                  <Text style={styles.matrixValue}>
-                    {Math.round((currentMetrics.confusionMatrix["False Negative"] / 
-                      (currentMetrics.confusionMatrix["True Positive"] + 
-                       currentMetrics.confusionMatrix["False Negative"] + 
-                       currentMetrics.confusionMatrix["False Positive"] + 
-                       currentMetrics.confusionMatrix["True Negative"])) * 100)}%
-                  </Text>
-                  <Text style={styles.matrixLabel}>False Negative</Text>
-                </View>
-                
-                {/* False Positive */}
-                <View style={[styles.matrixCell, styles.fpCell]}>
-                  <Text style={styles.matrixValue}>
-                    {Math.round((currentMetrics.confusionMatrix["False Positive"] / 
-                      (currentMetrics.confusionMatrix["True Positive"] + 
-                       currentMetrics.confusionMatrix["False Negative"] + 
-                       currentMetrics.confusionMatrix["False Positive"] + 
-                       currentMetrics.confusionMatrix["True Negative"])) * 100)}%
-                  </Text>
-                  <Text style={styles.matrixLabel}>False Positive</Text>
-                </View>
-                
-                {/* True Negative */}
-                <View style={[styles.matrixCell, styles.tnCell]}>
-                  <Text style={styles.matrixValue}>
-                    {Math.round((currentMetrics.confusionMatrix["True Negative"] / 
-                      (currentMetrics.confusionMatrix["True Positive"] + 
-                       currentMetrics.confusionMatrix["False Negative"] + 
-                       currentMetrics.confusionMatrix["False Positive"] + 
-                       currentMetrics.confusionMatrix["True Negative"])) * 100)}%
-                  </Text>
-                  <Text style={styles.matrixLabel}>True Negative</Text>
-                </View>
-              </View>
-            </View>
-          )}
-          
           {/* Bottom padding to ensure content above fixed card is visible */}
           <View style={styles.bottomPadding} />
         </ScrollView>
@@ -437,6 +377,35 @@ const ModelFeatureGameComponent = () => {
                 </View>
               </View>
               
+              <View style={styles.metricsGrid}>
+                <View style={styles.metricItem}>
+                  <Text style={styles.metricLabel}>AUC</Text>
+                  <Text style={[styles.metricValue, { color: '#FF3B30' }]}>
+                    {typeof currentMetrics.auc === 'number' 
+                      ? currentMetrics.auc.toFixed(2) 
+                      : currentMetrics.auc}
+                  </Text>
+                </View>
+                
+                <View style={styles.metricItem}>
+                  <Text style={styles.metricLabel}>Precision</Text>
+                  <Text style={[styles.metricValue, { color: '#23C552' }]}>
+                    {typeof currentMetrics.precision === 'number' 
+                      ? currentMetrics.precision.toFixed(2) 
+                      : currentMetrics.precision}
+                  </Text>
+                </View>
+                
+                <View style={styles.metricItem}>
+                  <Text style={styles.metricLabel}>F1</Text>
+                  <Text style={[styles.metricValue, { color: '#23C552' }]}>
+                    {typeof currentMetrics.f1 === 'number' 
+                      ? currentMetrics.f1.toFixed(2) 
+                      : currentMetrics.f1}
+                  </Text>
+                </View>
+              </View>
+              
               <Pressable
                 style={styles.matrixButton}
                 onPress={() => setShowConfusionMatrix(!showConfusionMatrix)}
@@ -445,6 +414,66 @@ const ModelFeatureGameComponent = () => {
                   {showConfusionMatrix ? 'Hide' : 'Show'} Confusion Matrix
                 </Text>
               </Pressable>
+              
+              {/* Confusion Matrix - Only shown when toggled */}
+              {showConfusionMatrix && (
+                <View style={styles.confusionMatrix}>
+                  <View style={styles.matrixHeader}>
+                    <Text style={styles.matrixTitle}>Confusion Matrix</Text>
+                    <Text style={styles.matrixSubtitle}>Actual vs Predicted</Text>
+                  </View>
+                  
+                  <View style={styles.matrixGrid}>
+                    {/* True Positive */}
+                    <View style={[styles.matrixCell, styles.tpCell]}>
+                      <Text style={styles.matrixValue}>
+                        {Math.round((currentMetrics.confusionMatrix["True Positive"] / 
+                          (currentMetrics.confusionMatrix["True Positive"] + 
+                           currentMetrics.confusionMatrix["False Negative"] + 
+                           currentMetrics.confusionMatrix["False Positive"] + 
+                           currentMetrics.confusionMatrix["True Negative"])) * 100)}%
+                      </Text>
+                      <Text style={styles.matrixLabel}>True Positive</Text>
+                    </View>
+                    
+                    {/* False Negative */}
+                    <View style={[styles.matrixCell, styles.fnCell]}>
+                      <Text style={styles.matrixValue}>
+                        {Math.round((currentMetrics.confusionMatrix["False Negative"] / 
+                          (currentMetrics.confusionMatrix["True Positive"] + 
+                           currentMetrics.confusionMatrix["False Negative"] + 
+                           currentMetrics.confusionMatrix["False Positive"] + 
+                           currentMetrics.confusionMatrix["True Negative"])) * 100)}%
+                      </Text>
+                      <Text style={styles.matrixLabel}>False Negative</Text>
+                    </View>
+                    
+                    {/* False Positive */}
+                    <View style={[styles.matrixCell, styles.fpCell]}>
+                      <Text style={styles.matrixValue}>
+                        {Math.round((currentMetrics.confusionMatrix["False Positive"] / 
+                          (currentMetrics.confusionMatrix["True Positive"] + 
+                           currentMetrics.confusionMatrix["False Negative"] + 
+                           currentMetrics.confusionMatrix["False Positive"] + 
+                           currentMetrics.confusionMatrix["True Negative"])) * 100)}%
+                      </Text>
+                      <Text style={styles.matrixLabel}>False Positive</Text>
+                    </View>
+                    
+                    {/* True Negative */}
+                    <View style={[styles.matrixCell, styles.tnCell]}>
+                      <Text style={styles.matrixValue}>
+                        {Math.round((currentMetrics.confusionMatrix["True Negative"] / 
+                          (currentMetrics.confusionMatrix["True Positive"] + 
+                           currentMetrics.confusionMatrix["False Negative"] + 
+                           currentMetrics.confusionMatrix["False Positive"] + 
+                           currentMetrics.confusionMatrix["True Negative"])) * 100)}%
+                      </Text>
+                      <Text style={styles.matrixLabel}>True Negative</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
             </>
           )}
         </View>
@@ -1410,16 +1439,80 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   confusionMatrix: {
-    marginTop: 16,
-    padding: 12,
+    marginTop: 10,
+    padding: 10,
     backgroundColor: 'rgba(0, 0, 0, 0.2)',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  matrixHeader: {
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 0,
+  },
+  bottomPadding: {
+    height: 120, // Increased to ensure enough space
+  },
+  featureGameContainer: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+    alignSelf: 'stretch',
+    height: '100%',
+    marginTop: 10,
+  },
+  scrollableContent: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+    alignSelf: 'stretch',
+    height: '100%',
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+    position: 'relative',
+    alignSelf: 'stretch',
+    height: '100%',
+  },
+  scrollViewContent: {
+    padding: 15,
+    paddingBottom: 120, // Increased to allow space for fixed bottom card
+    width: '100%',
+  },
+  fixedBottomCard: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    padding: 10,
+    backgroundColor: 'rgba(18, 53, 36, 0.95)',
+    borderRadius: 10,
+    zIndex: 999,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+  },
+  performanceWrapper: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 0,
   },
   matrixHeader: {
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     paddingBottom: 8,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   matrixTitle: {
     color: 'white',
@@ -1463,413 +1556,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 12,
     marginTop: 4,
-  },
-  // Watering Decision Tool Styles
-  decisionCard: {
-    marginBottom: 12,
-  },
-  decisionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  decisionLabel: {
-    fontSize: 16,
-    color: 'white',
-  },
-  decisionValue: {
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  waterDecision: {
-    color: '#007AFF',
-  },
-  noWaterDecision: {
-    color: '#FF3B30',
-  },
-  decisionDescription: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  factorsGrid: {
-    marginBottom: 16,
-  },
-  factorItem: {
-    marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    padding: 10,
-    width: '100%',
-    minWidth: 350,
-  },
-  sliderContainer: {
-    paddingVertical: 4,
-  },
-  sliderHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  sliderLabel: {
-    fontSize: 14,
-    color: 'white',
-    marginLeft: 8,
-    marginRight: 4,
-  },
-  coefficientText: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
-  },
-  sliderTrack: {
-    width: '100%',
-    height: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 5,
-    marginVertical: 12,
-    position: 'relative',
-  },
-  sliderFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    height: '100%',
-    backgroundColor: '#007AFF',
-    borderRadius: 5,
-  },
-  sliderThumb: {
-    position: 'absolute',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    borderColor: '#007AFF',
-    borderWidth: 2,
-    top: -7, // Center the thumb on the track
-    marginLeft: -12, // Half the width to center horizontally
-  },
-  sliderFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sliderMinMax: {
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.5)',
-  },
-  sliderValue: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  growthStageContainer: {
-    paddingVertical: 4,
-  },
-  growthStageSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 8,
-  },
-  stageButton: {
-    flex: 1,
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: 4,
-    marginHorizontal: 2,
-    alignItems: 'center',
-  },
-  stageButtonActive: {
-    backgroundColor: 'rgba(76, 217, 100, 0.3)',
-  },
-  stageButtonText: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  stageButtonTextActive: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  formulaCard: {
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  formulaTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
-  },
-  formulaText: {
-    fontSize: 12,
-    color: 'white',
-    fontFamily: 'monospace',
-    lineHeight: 18,
-    marginBottom: 8,
-  },
-  formulaDescription: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 8,
-  },
-  formulaResult: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-  },
-  formulaResultText: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  waterText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#007AFF',
-  },
-  noWaterText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#FF3B30',
-  },
-  
-  // Lesson Completion Styles
-  completionContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  completionHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  completionGradient: {
-    borderRadius: 60,
-    padding: 10,
-    marginBottom: 16,
-  },
-  completionIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  completionTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
-  },
-  completionSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
-  },
-  completionCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    padding: 16,
-    width: '100%',
-    marginBottom: 20,
-    minWidth: 300,
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 12,
-  },
-  summaryItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 15,
-    marginTop: 5,
-    marginHorizontal: 6
-  },
-  summaryBullet: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(35, 197, 82, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    marginTop: 2,
-  },
-  summaryText: {
-    fontSize: 12,
-    color: 'white',
-    flex: 1,
-  },
-  completionFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  appIcon: {
-    width: 40,
-    height: 40,
-    marginRight: 12,
-  },
-  appCredits: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'left',
-    marginTop: -5,
-  },
-  companyName: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  sensorMockup: {
-    width: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 10,
-  },
-  mockupHeader: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    padding: 12,
-  },
-  mockupTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-  },
-  mockupContent: {
-    padding: 16,
-  },
-  mockupReadings: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  mockupReading: {
-    alignItems: 'center',
-  },
-  mockupLabel: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginTop: 4,
-  },
-  mockupValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  mockupPrediction: {
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: 8,
-    padding: 12,
-  },
-  predictionLabel: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  predictionValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#23C552',
-    marginVertical: 4,
-  },
-  predictionBar: {
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 4,
-    marginVertical: 8,
-    overflow: 'hidden',
-  },
-  predictionFill: {
-    width: '65%',
-    height: '100%',
-    backgroundColor: '#23C552',
-    borderRadius: 4,
-  },
-  predictionDetails: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'right',
-  },
-  watertoolWrapper: {
-    flex: 1,
-    width: '100%',
-    position: 'relative',
-    alignSelf: 'stretch',
-    height: '100%',
-    marginTop: 10,
-  },
-  headerContentContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  wateringToolHeader: {
-    paddingHorizontal: 15,
-    marginBottom: 5,
-  },
-  wateringToolContainer: {
-    paddingHorizontal: 0,
-    paddingVertical: 0,
-  },
-  wateringToolContent: {
-    paddingHorizontal: 0,
-  },
-  featureGameContainer: {
-    flex: 1,
-    width: '100%',
-    position: 'relative',
-    alignSelf: 'stretch',
-    height: '100%',
-    marginTop: 10,
-  },
-  scrollableContent: {
-    flex: 1,
-    width: '100%',
-    position: 'relative',
-    alignSelf: 'stretch',
-    height: '100%',
-  },
-  scrollView: {
-    flex: 1,
-    width: '100%',
-    position: 'relative',
-    alignSelf: 'stretch',
-    height: '100%',
-  },
-  scrollViewContent: {
-    padding: 15,
-    paddingBottom: 120, // Increased to allow space for fixed bottom card
-    width: '100%',
-  },
-  fixedBottomCard: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    width: '100%',
-    padding: 10,
-    backgroundColor: 'rgba(18, 53, 36, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
-    zIndex: 999,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    paddingBottom: Platform.OS === 'ios' ? 30 : 10,
-  },
-  performanceWrapper: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 0,
   },
   bottomPadding: {
     height: 120, // Increased to ensure enough space
