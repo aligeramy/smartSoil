@@ -52,3 +52,85 @@ app-example
 android/
 ios/
 .vercel
+
+
+service-account.json
+
+# Add the service-account.json to gitignore to prevent accidental commits
+google-play/service-account.json
+google-play/service-account.json.exposed
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# macOS
+.DS_Store
+
+# iOS
+ios/build/
+ios/Pods/
+ios/*.xcworkspace
+ios/Podfile.lock
+
+# Android
+android/build/
+android/app/build/
+android/captures/
+android/local.properties
+android/gradle.properties
+android/.gradle
+
+# Keys and secrets
+*.keystore
+*.p12
+*.jks
+*.pem
+
+# BUCK
+buck-out/
+.buckd/
+*.keystore
+!debug.keystore
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Environment variables
+.env*
+!.env.example
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Bundle artifact
+*.jsbundle
+
+# Temporary files
+*.tmp
+*.tmp.*
+*~
