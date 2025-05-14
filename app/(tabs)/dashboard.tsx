@@ -5,16 +5,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Animated,
-  Platform,
-  Pressable,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
+    ActivityIndicator,
+    Animated,
+    Platform,
+    Pressable,
+    RefreshControl,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 
 // Constants - will be dynamically set from settings
@@ -63,12 +63,25 @@ export default function ESPDashboardScreen() {
   const [lastUpdated, setLastUpdated] = useState("");
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [showMoistureInfo, setShowMoistureInfo] = useState(false);
+  // Debug logs state
+  const [showLogs, setShowLogs] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   
   // Animation values
   const moistureAnim = useRef(new Animated.Value(0)).current;
   const temperatureAnim = useRef(new Animated.Value(0)).current;
   const humidityAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Add log function
+  const addLog = (message: string) => {
+    console.log(message);
+    setDebugLogs(prev => {
+      const newLogs = [...prev, `${new Date().toLocaleTimeString()}: ${message}`];
+      // Keep only the last 50 logs
+      return newLogs.slice(-50);
+    });
+  };
 
   // Navigation handler
   const handleBack = useCallback(() => {
@@ -82,7 +95,7 @@ export default function ESPDashboardScreen() {
       const savedIp = localStorage.getItem(ESP_IP_STORAGE_KEY);
       if (savedIp) {
         ESP_BASE = `http://${savedIp}`;
-        console.log('Using ESP IP from settings:', ESP_BASE);
+        addLog('Using ESP IP from settings: ' + ESP_BASE);
       }
     }
     // For native apps, would use AsyncStorage (not implemented here)
@@ -120,13 +133,14 @@ export default function ESPDashboardScreen() {
       const newTemp = Math.max(18, Math.min(32, prev.temperature + parseFloat(tempVar)));
       const newHum = Math.max(30, Math.min(90, prev.humidity + parseFloat(humVar)));
       const newRaw = Math.round(mapValue(newMoisture, 0, 100, 1023, 300));
+      const newHeatIndex = newTemp + (newHum > 40 ? 2 : 0); // Simple demo heat index
       
       return {
         moisture: newMoisture,
         temperature: newTemp,
         humidity: newHum,
         rawAnalog: newRaw,
-        heatIndex: newTemp + (newHum > 40 ? (0.05 * newHum) : 0),
+        heatIndex: newHeatIndex,
       };
     });
     
@@ -138,6 +152,7 @@ export default function ESPDashboardScreen() {
     }, 100);
     
     setLastUpdated(new Date().toLocaleTimeString());
+    addLog('Updated demo data');
   };
 
   // Fetch real data from ESP8266
@@ -160,78 +175,113 @@ export default function ESPDashboardScreen() {
         }
       }
       
-      // Try to fetch DHT11 data
-      const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`, { 
-        headers: { 'Cache-Control': 'no-cache' }
-      });
-      const rawDHT = await dhtRes.text();
-      const [humidityStr, temperatureStr] = rawDHT.trim().split(" ");
+      addLog(`Attempting to connect to ESP at: ${ESP_BASE}`);
       
-      // Try to fetch analog data
-      const analogRes = await fetch(`${ESP_BASE}/raw_a`, { 
-        headers: { 'Cache-Control': 'no-cache' }
-      });
-      const rawAnalogText = await analogRes.text();
-      const rawAnalogValue = parseInt(rawAnalogText.trim());
-      
-      // If we got valid data, update the state
-      if (!isNaN(rawAnalogValue) && humidityStr && temperatureStr) {
-        const tempValue = parseFloat(temperatureStr);
-        const humValue = parseFloat(humidityStr);
+      try {
+        // Create an AbortController with timeout for compatibility
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         
-        // Calculate heat index if we have valid temperature and humidity
-        let heatIndex = tempValue;
-        if (!isNaN(tempValue) && !isNaN(humValue)) {
-          // Simple heat index calculation
-          if (tempValue > 20 && humValue > 40) {
-            // This is a simplified version - real heat index is more complex
-            heatIndex = tempValue + (0.05 * humValue);
-          }
-        }
-        
-        // Calculate moisture percentage from raw analog
-        const moisturePercentage = Math.round(mapValue(rawAnalogValue, 1023, 300, 0, 100));
-        
-        // Update the data with smooth animation
-        Animated.parallel([
-          Animated.timing(moistureAnim, {
-            toValue: moisturePercentage,
-            duration: 500,
-            useNativeDriver: false
-          }),
-          Animated.timing(temperatureAnim, {
-            toValue: tempValue,
-            duration: 500,
-            useNativeDriver: false
-          }),
-          Animated.timing(humidityAnim, {
-            toValue: humValue,
-            duration: 500,
-            useNativeDriver: false
-          })
-        ]).start();
-        
-        setSensorData({
-          moisture: moisturePercentage,
-          temperature: tempValue,
-          humidity: humValue,
-          heatIndex: heatIndex,
-          rawAnalog: rawAnalogValue
+        const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`, { 
+          headers: { 'Cache-Control': 'no-cache' },
+          signal: controller.signal
         });
         
-        // Update history arrays
-        setMoistureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), moisturePercentage]);
-        setTemperatureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), tempValue]);
-        setHumidityHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), humValue]);
+        clearTimeout(timeoutId);
         
-        setConnected(true);
-        setLastUpdated(new Date().toLocaleTimeString());
+        const rawDHT = await dhtRes.text();
+        addLog(`DHT11 data received: ${rawDHT}`);
+        
+        // Parse 3 values from sensor: humidity, temperature, heat index
+        const dhtValues = rawDHT.trim().split(" ");
+        const humidityStr = dhtValues[0];
+        const temperatureStr = dhtValues[1];
+        const heatIndexStr = dhtValues.length > 2 ? dhtValues[2] : null;
+        
+        // Create a new controller for the second fetch
+        const controller2 = new AbortController();
+        const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
+        
+        // Try to fetch analog data
+        const analogRes = await fetch(`${ESP_BASE}/raw_a`, { 
+          headers: { 'Cache-Control': 'no-cache' },
+          signal: controller2.signal
+        });
+        
+        clearTimeout(timeoutId2);
+        
+        const rawAnalogText = await analogRes.text();
+        addLog(`Analog data received: ${rawAnalogText}`);
+        const rawAnalogValue = parseInt(rawAnalogText.trim());
+        
+        // If we got valid data, update the state
+        if (!isNaN(rawAnalogValue) && humidityStr && temperatureStr) {
+          const tempValue = parseFloat(temperatureStr);
+          const humValue = parseFloat(humidityStr);
+          
+          // Use heat index directly from sensor if available, otherwise use temperature
+          let heatIndex = tempValue;
+          if (heatIndexStr && !isNaN(parseFloat(heatIndexStr))) {
+            heatIndex = parseFloat(heatIndexStr);
+            addLog(`Using heat index from sensor: ${heatIndex}`);
+          } else {
+            addLog('Heat index not provided by sensor, using temperature');
+          }
+          
+          // Calculate moisture percentage from raw analog
+          const moisturePercentage = Math.round(mapValue(rawAnalogValue, 1023, 300, 0, 100));
+          addLog(`Calculated moisture: ${moisturePercentage}%`);
+          
+          // Update the data with smooth animation
+          Animated.parallel([
+            Animated.timing(moistureAnim, {
+              toValue: moisturePercentage,
+              duration: 500,
+              useNativeDriver: false
+            }),
+            Animated.timing(temperatureAnim, {
+              toValue: tempValue,
+              duration: 500,
+              useNativeDriver: false
+            }),
+            Animated.timing(humidityAnim, {
+              toValue: humValue,
+              duration: 500,
+              useNativeDriver: false
+            })
+          ]).start();
+          
+          setSensorData({
+            moisture: moisturePercentage,
+            temperature: tempValue,
+            humidity: humValue,
+            heatIndex: heatIndex,
+            rawAnalog: rawAnalogValue
+          });
+          
+          // Update history arrays
+          setMoistureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), moisturePercentage]);
+          setTemperatureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), tempValue]);
+          setHumidityHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), humValue]);
+          
+          setConnected(true);
+          setLastUpdated(new Date().toLocaleTimeString());
+          addLog('Successfully updated sensor data');
+        }
+      } catch (fetchError: any) {
+        addLog(`Fetch error: ${fetchError.message || fetchError}`);
+        throw new Error(`Fetch failed: ${fetchError.message || "Unknown fetch error"}`);
       }
-    } catch (error) {
-      // Just log the error instead of showing it
-      console.log("ESP connection not available, using demo mode");
+    } catch (error: any) {
+      // Log more detailed error information for diagnosis
+      addLog(`ESP connection error: ${error.message || "Unknown error"}`);
+      addLog(`Error type: ${error.name || "No error name"}`);
+      addLog(`Platform: ${Platform.OS}`);
+      addLog(`Network URL attempted: ${ESP_BASE}`);
+      
       if (!connected && !demoMode) {
         // If first attempt fails, switch to demo mode
+        addLog("Switching to demo mode");
         setDemoMode(true);
         simulateData();
         
@@ -603,6 +653,20 @@ export default function ESPDashboardScreen() {
                 <ResponsiveText variant="caption" style={styles.controlText}>Refresh Now</ResponsiveText>
               </Pressable>
               
+              <Pressable 
+                style={[
+                  styles.controlButton,
+                  showLogs && styles.controlButtonActive,
+                  isLargeScreen && styles.controlButtonLarge
+                ]} 
+                onPress={() => setShowLogs(!showLogs)}
+              >
+                <Ionicons name="code-outline" size={isLargeScreen ? 24 : 20} color="#fff" />
+                <ResponsiveText variant="caption" style={styles.controlText}>
+                  {showLogs ? "Hide Logs" : "Show Logs"}
+                </ResponsiveText>
+              </Pressable>
+              
               <ResponsiveText variant="caption" style={styles.lastUpdatedText}>
                 Last updated: {lastUpdated || 'Never'}
               </ResponsiveText>
@@ -618,6 +682,44 @@ export default function ESPDashboardScreen() {
                 </View>
               )}
             </View>
+            
+            {/* Debug Logs Section */}
+            {showLogs && (
+              <View style={styles.logsContainer}>
+                <View style={styles.logsHeader}>
+                  <Text style={styles.logsTitle}>Connection Logs</Text>
+                  <Pressable 
+                    style={styles.clearLogsButton}
+                    onPress={() => setDebugLogs([])}
+                  >
+                    <Text style={styles.clearLogsText}>Clear</Text>
+                  </Pressable>
+                </View>
+                
+                <ScrollView style={styles.logsScrollView}>
+                  {debugLogs.length === 0 ? (
+                    <Text style={styles.noLogsText}>No logs yet.</Text>
+                  ) : (
+                    debugLogs.map((log, index) => (
+                      <Text key={index} style={styles.logEntry}>{log}</Text>
+                    ))
+                  )}
+                </ScrollView>
+                
+                <View style={styles.connectionInfo}>
+                  <Text style={styles.connectionInfoText}>
+                    ESP IP: {ESP_BASE}
+                  </Text>
+                  <Text style={styles.connectionInfoText}>
+                    Status: {connected ? 'Connected' : 'Disconnected'} 
+                    {demoMode ? ' (Demo Mode)' : ''}
+                  </Text>
+                  <Text style={styles.connectionInfoText}>
+                    Platform: {Platform.OS}
+                  </Text>
+                </View>
+              </View>
+            )}
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
@@ -968,5 +1070,59 @@ const styles = StyleSheet.create({
   espInfoText: {
     color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 4,
+  },
+  logsContainer: {
+    padding: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 12,
+    marginBottom: 20,
+    width: '100%',
+  },
+  logsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    paddingBottom: 8,
+  },
+  logsTitle: {
+    fontWeight: 'bold',
+    color: '#fff',
+    fontSize: 18,
+  },
+  clearLogsButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  clearLogsText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  logsScrollView: {
+    maxHeight: 200,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 8,
+    padding: 10,
+  },
+  noLogsText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+    padding: 10,
+  },
+  logEntry: {
+    color: '#fff',
+    marginBottom: 4,
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  connectionInfoText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 4,
+    fontSize: 12,
+    marginTop: 10,
   },
 }); 

@@ -40,11 +40,6 @@ const lesson2Steps = [
     customComponent: true
   },
   {
-    title: 'Analog to Percentages',
-    description: 'Learn how to convert raw analog values into user-friendly moisture percentages.',
-    customComponent: true
-  },
-  {
     title: 'Interactive Moisture Analysis',
     description: 'Practice interpreting soil moisture readings through an interactive simulation.',
     customComponent: true
@@ -99,14 +94,41 @@ const DataVisualizationIntro = () => {
     }
     
     try {
+      console.log(`Attempting to connect to ESP at: ${ESP_BASE}`);
+      
       // Try to fetch DHT11 data
-      const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`);
+      // Create an AbortController with timeout for compatibility
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       const rawDHT = await dhtRes.text();
-      const [humidityStr, temperatureStr] = rawDHT.trim().split(" ");
+      console.log(`DHT11 data received: ${rawDHT}`);
+      
+      // Parse the values from the DHT11 - format: "humidity temperature heatIndex"
+      const dhtValues = rawDHT.trim().split(" ");
+      const humidityStr = dhtValues[0];
+      const temperatureStr = dhtValues[1];
+      const heatIndexStr = dhtValues.length > 2 ? dhtValues[2] : null;
       
       // Try to fetch analog data
-      const analogRes = await fetch(`${ESP_BASE}/raw_a`);
+      // Create a new controller for the second fetch
+      const controller2 = new AbortController();
+      const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
+      
+      const analogRes = await fetch(`${ESP_BASE}/raw_a`, {
+        signal: controller2.signal
+      });
+      
+      clearTimeout(timeoutId2);
+      
       const rawAnalogText = await analogRes.text();
+      console.log(`Analog data received: ${rawAnalogText}`);
       const rawAnalogValue = parseInt(rawAnalogText.trim());
       
       // If we got valid data, update the state
@@ -114,20 +136,19 @@ const DataVisualizationIntro = () => {
         const tempValue = parseFloat(temperatureStr);
         const humValue = parseFloat(humidityStr);
         
-        // Calculate heat index if we have valid temperature and humidity
-        let heatIndex = tempValue;
-        if (!isNaN(tempValue) && !isNaN(humValue)) {
-          // Simple heat index calculation
-          if (tempValue > 20 && humValue > 40) {
-            // This is a simplified version - real heat index is more complex
-            heatIndex = tempValue + (0.05 * humValue);
-          }
+        // Get heat index directly from sensor if available
+        let heatIndex = tempValue; // Default to temperature if heat index not available
+        if (heatIndexStr && !isNaN(parseFloat(heatIndexStr))) {
+          heatIndex = parseFloat(heatIndexStr);
+          console.log(`Using heat index from sensor: ${heatIndex}`);
+        } else {
+          console.log('Heat index not provided by sensor, using temperature');
         }
         
         setSensorData({
           moisture: Math.round(mapValue(rawAnalogValue, 1023, 300, 0, 100)),
-          temperature: parseFloat(temperatureStr),
-          humidity: parseFloat(humidityStr),
+          temperature: tempValue,
+          humidity: humValue,
           heatIndex: heatIndex,
           rawAnalog: rawAnalogValue
         });
@@ -135,8 +156,8 @@ const DataVisualizationIntro = () => {
         setConnected(true);
         setLastUpdated(new Date().toLocaleTimeString());
       }
-    } catch (error) {
-      console.log("ESP fetch error in intro:", error);
+    } catch (error: any) {
+      console.log("ESP connection not available, using demo mode");
       // If first attempt fails, switch to demo mode silently
       if (!connected && !demoMode) {
         setDemoMode(true);
@@ -270,6 +291,11 @@ const AnalogValuesComponent = () => {
           Soil moisture sensors provide raw analog values between 0-1023 based on the amount of moisture in the soil:
         </Text>
         <View style={styles.analogScaleContainer}>
+          <View style={styles.analogPercentLabels}>
+            <Text style={styles.analogPercentValue}>100%</Text>
+            <Text style={styles.analogPercentValue}>50%</Text>
+            <Text style={styles.analogPercentValue}>0%</Text>
+          </View>
           <View style={styles.analogScale}>
             <View style={styles.analogScaleLabels}>
               <Text style={styles.analogScaleValue}>0</Text>
@@ -318,130 +344,7 @@ const AnalogValuesComponent = () => {
   );
 };
 
-// Second component for Converting to Percentages 
-const MoistureMappingComponent = () => {
-  // State for values and connection status
-  const [mockValue, setMockValue] = useState(mockSensorData.rawAnalog);
-  const [connected, setConnected] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState("");
-  const [demoMode, setDemoMode] = useState(false);
-  
-  // Fetch data from ESP8266
-  const fetchESPData = async () => {
-    if (demoMode) {
-      // In demo mode, just simulate data changes
-      simulateDataChange();
-      return;
-    }
-    
-    try {
-      const analogRes = await fetch(`${ESP_BASE}/raw_a`);
-      const rawAnalogText = await analogRes.text();
-      const rawAnalogValue = parseInt(rawAnalogText.trim());
-      
-      if (!isNaN(rawAnalogValue)) {
-        setMockValue(rawAnalogValue);
-        setConnected(true);
-        setLastUpdated(new Date().toLocaleTimeString());
-      }
-    } catch (error) {
-      console.log("ESP connection not available, using demo mode");
-      // If first attempt fails, switch to demo mode silently
-      if (!connected && !demoMode) {
-        setDemoMode(true);
-        simulateDataChange();
-      }
-    } finally {
-      setRefreshing(false);
-    }
-  };
-  
-  // Function to simulate data changes for demo mode
-  const simulateDataChange = () => {
-    // Vary the mock value slightly to simulate readings
-    const variation = Math.floor(Math.random() * 20) - 10; // -10 to +10
-    setMockValue(prev => {
-      const newValue = prev + variation;
-      // Keep within reasonable bounds
-      return Math.max(300, Math.min(950, newValue));
-    });
-    setLastUpdated(new Date().toLocaleTimeString());
-  };
-  
-  // Setup timers for data updates
-  useEffect(() => {
-    // Try connecting to ESP on first load
-    fetchESPData();
-    
-    // Set up interval for updates
-    const timer = setInterval(fetchESPData, 3000);
-    return () => clearInterval(timer);
-  }, []);
-  
-  // Convert the raw value to moisture percentage
-  const moisturePercentage = Math.round(mapValue(mockValue, 1023, 300, 0, 100));
-  
-  // Calculate with simple equation
-  const simplePercentage = Math.round((1023 - mockValue) / 1023 * 100);
-  
-  return (
-    <View style={styles.lessonContent}>
-      <View style={styles.contentCard}>
-        <Text style={[styles.cardSectionTitle, {marginTop: 0}]}>Voltages to Percentages</Text>
-        <Text style={styles.contentText}>
-          We convert raw values (0-1023) to moisture percentages (0-100%) using this formula:
-        </Text>
-        <View style={styles.codeSnippet}>
-          <Text style={styles.codeComment}>// Converting raw analog value to moisture percentage</Text>
-          <Text style={styles.codeLine}>const moisture = mapValue(rawAnalog, 1023, 300, 0, 100);</Text>
-        </View>
-      </View>
-      
-      <View style={styles.contentCard}>
-        <Text style={[styles.cardSectionTitle, {marginTop: 0}]}>Simple Equation</Text>
-        
-        <View style={styles.simpleEquationContainer}>
-          <View style={styles.connectionStatusRow}>
-            {connected ? (
-              <View style={styles.connectedStatus}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Connected to ESP</Text>
-              </View>
-            ) : (
-              <View style={styles.mockStatus}>
-                <View style={[styles.statusDot, { backgroundColor: '#ffc107' }]} />
-                <Text style={styles.statusText}>Demo Mode</Text>
-              </View>
-            )}
-          </View>
-          
-          <View style={styles.equationRow}>
-            <Text style={styles.equationPart}>(1023 - {mockValue})</Text>
-            <Text style={styles.equationOperator}> / </Text>
-            <Text style={styles.equationPart}>1023</Text>
-            <Text style={styles.equationOperator}> × </Text>
-            <Text style={styles.equationPart}>100</Text>
-            <Text style={styles.equationOperator}> = </Text>
-            <Text style={[styles.equationResult, {color: getMoistureColor(simplePercentage)}]}>{simplePercentage}%</Text>
-            {demoMode && (
-              <View style={styles.miniDemoTag}>
-                <Text style={styles.miniDemoText}>Demo</Text>
-              </View>
-            )}
-          </View>
-          
-          <Text style={styles.equationExplanation}>
-            This simple equation gives us a percentage where 0 (completely dry) is 0%
-            and 1023 (completely wet) is 100%.
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-};
-
-// Third component - Interactive Moisture Analysis
+// Interactive Moisture Analysis
 const InteractiveMoistureComponent = () => {
   const [sliderValue, setSliderValue] = useState<number>(mockSensorData.moisture);
   const moistureStatus = getMoistureStatus(sliderValue);
@@ -802,21 +705,13 @@ export default function Lesson2Screen() {
         stepContent = (
           <>
             {headerContent}
-            <MoistureMappingComponent />
-          </>
-        );
-        break;
-      case 3:
-        stepContent = (
-          <>
-            {headerContent}
             <View style={{width: 350, alignItems: 'center'}}>
               <InteractiveMoistureComponent />
             </View>
           </>
         );
         break;
-      case 4:
+      case 3:
         stepContent = (
           <>
             {headerContent}
@@ -1592,6 +1487,17 @@ const styles = StyleSheet.create({
   analogScaleValue: {
     fontSize: 14,
     color: 'white',
+    fontWeight: 'bold',
+  },
+  analogPercentLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    marginBottom: 5,
+  },
+  analogPercentValue: {
+    fontSize: 14,
+    color: '#88c0d0',
     fontWeight: 'bold',
   },
   conversionExample: {

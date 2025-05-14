@@ -87,12 +87,15 @@ const FactorSlider = React.memo(({
   );
 });
 
+// Add display name to fix linter error
+FactorSlider.displayName = 'FactorSlider';
+
 const WateringDecisionTool = () => {
   // Initial values within the specified ranges
   // Combined state for all values
   const [allValues, setAllValues] = useState<AllValues>({
     x1: 30, // soilMoisture
-    x2: 1,  // growthStage
+    x2: 2,  // growthStage fixed to Vegetative
     x3: 50, // rainfallRolling
     x4: 28, // tempRolling
     x5: 65, // humidityRolling
@@ -253,45 +256,7 @@ const WateringDecisionTool = () => {
               />
             </View>
             
-            {/* Growth Stage Selector moved to bottom */}
-            <View style={styles.factorItem}>
-              <View style={styles.growthStageContainer}>
-                <View style={styles.sliderHeader}>
-                  <Ionicons name="leaf-outline" size={18} color="#4CD964" />
-                  <Text style={styles.sliderLabel}>Growth Stage (x2)</Text>
-                  <Text style={styles.coefficientText}>Coefficient: -0.6112</Text>
-                </View>
-                
-                <View style={styles.growthStageSelector}>
-                  <Pressable
-                    style={[styles.stageButton, allValues.x2 === 1 && styles.stageButtonActive]}
-                    onPress={() => onSliderChange('x2')(1)}
-                  >
-                    <Text style={[styles.stageButtonText, allValues.x2 === 1 && styles.stageButtonTextActive]}>
-                      Early (1)
-                    </Text>
-                  </Pressable>
-                  
-                  <Pressable
-                    style={[styles.stageButton, allValues.x2 === 2 && styles.stageButtonActive]}
-                    onPress={() => onSliderChange('x2')(2)}
-                  >
-                    <Text style={[styles.stageButtonText, allValues.x2 === 2 && styles.stageButtonTextActive]}>
-                      Vegetative (2)
-                    </Text>
-                  </Pressable>
-                  
-                  <Pressable
-                    style={[styles.stageButton, allValues.x2 === 3 && styles.stageButtonActive]}
-                    onPress={() => onSliderChange('x2')(3)}
-                  >
-                    <Text style={[styles.stageButtonText, allValues.x2 === 3 && styles.stageButtonTextActive]}>
-                      Reproductive (3)
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
+            {/* Growth Stage fixed to Vegetative (2) – selector removed */}
           </View>
           
           {/* Formula Card */}
@@ -450,34 +415,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  growthStageContainer: {
-    paddingVertical: 4,
-  },
-  growthStageSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 8,
-  },
-  stageButton: {
-    flex: 1,
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    borderRadius: 4,
-    marginHorizontal: 2,
-    alignItems: 'center',
-  },
-  stageButtonActive: {
-    backgroundColor: 'rgba(76, 217, 100, 0.3)',
-  },
-  stageButtonText: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  stageButtonTextActive: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
   formulaCard: {
     backgroundColor: 'rgba(0, 0, 0, 0.2)',
     borderRadius: 8,
@@ -532,7 +469,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   fixedBottomCard: {
-    position: 'absolute',
+    position: 'fixed',
     bottom: 0,
     left: 0,
     right: 0,

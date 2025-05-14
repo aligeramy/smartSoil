@@ -31,7 +31,7 @@ const lesson1Steps = [
   },
   {
     title: 'Connect Your ESP Unit',
-    description: 'To begin using your soil moisture sensor, first power up your ESP32 microcontroller:',
+    description: 'To begin using your soil moisture sensor, power up your device:',
     // Custom ESP power step with detailed instructions
     customComponent: true
   },
@@ -111,30 +111,76 @@ const ESPDataVisualizer = ({ onConnected, demoMode: initialDemoMode = false }: {
         ]),
       ]).start();
       
-      const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`);
-      const rawDHT = await dhtRes.text();
-      const [humidityStr, temperatureStr] = rawDHT.trim().split(" ");
-
-      const analogRes = await fetch(`${ESP_BASE}/raw_a`);
-      const rawAnalogText = await analogRes.text();
-      const rawAnalogValue = parseInt(rawAnalogText.trim());
-
-      // Round to 1 significant figure for simplicity
-      const tempRounded = Math.round(parseFloat(temperatureStr || "0"));
-      const humRounded = Math.round(parseFloat(humidityStr || "0"));
-
-      setRawHumidity(humRounded.toString());
-      setRawTemperature(tempRounded.toString());
-      setRawAnalog(rawAnalogValue);
-      setLastUpdated(new Date().toLocaleTimeString());
-      setConnectionError(false);
-      setDemoMode(false);
+      console.log(`Attempting to connect to ESP at: ${ESP_BASE}`);
       
-      // Notify that we successfully connected
-      if (loading) {
-        onConnected();
+      try {
+        // Create an AbortController with timeout for compatibility
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`, {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const rawDHT = await dhtRes.text();
+        console.log(`DHT11 data received: ${rawDHT}`);
+        
+        // Split the DHT response into humidity, temperature, and heat index
+        const dhtValues = rawDHT.trim().split(" ");
+        const humidityStr = dhtValues[0];
+        const temperatureStr = dhtValues[1];
+        const heatIndexStr = dhtValues.length > 2 ? dhtValues[2] : null;
+
+        // Create a new controller for the second fetch
+        const controller2 = new AbortController();
+        const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
+        
+        const analogRes = await fetch(`${ESP_BASE}/raw_a`, {
+          signal: controller2.signal
+        });
+        
+        clearTimeout(timeoutId2);
+
+        const rawAnalogText = await analogRes.text();
+        console.log(`Analog data received: ${rawAnalogText}`);
+        const rawAnalogValue = parseInt(rawAnalogText.trim());
+
+        // Round to 1 significant figure for simplicity
+        const tempRounded = Math.round(parseFloat(temperatureStr || "0"));
+        const humRounded = Math.round(parseFloat(humidityStr || "0"));
+        
+        // Use heat index if provided, otherwise default to temperature
+        let heatIndexRounded = tempRounded;
+        if (heatIndexStr && !isNaN(parseFloat(heatIndexStr))) {
+          heatIndexRounded = Math.round(parseFloat(heatIndexStr));
+          console.log(`Using heat index from sensor: ${heatIndexRounded}`);
+        }
+
+        setRawHumidity(humRounded.toString());
+        setRawTemperature(tempRounded.toString());
+        setRawAnalog(rawAnalogValue);
+        setLastUpdated(new Date().toLocaleTimeString());
+        setConnectionError(false);
+        setDemoMode(false);
+        
+        // Notify that we successfully connected
+        if (loading) {
+          onConnected();
+        }
+      } catch (fetchError: any) {
+        console.error("Fetch error details:", fetchError.message || fetchError);
+        throw new Error(`ESP fetch failed: ${fetchError.message || "Unknown fetch error"}`);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Log detailed error information
+      console.error("ESP connection failed in Lesson 1:");
+      console.error(error.name ? `Error name: ${error.name}` : "No error name");
+      console.error(error.message ? `Error message: ${error.message}` : "No error message");
+      console.error(Platform.OS === 'android' ? "Running on Android" : "Running on " + Platform.OS);
+      console.error(`Network URL attempted: ${ESP_BASE}`);
+      
       console.log("ESP connection not available, using demo mode");
       setConnectionError(true);
       setDemoMode(true);
@@ -391,21 +437,21 @@ export default function Lesson1Screen() {
                 <View style={styles.instructionNumber}>
                   <Text style={styles.instructionNumberText}>1</Text>
                 </View>
-                <Text style={styles.instructionText}>Connect a micro-USB cable to your ESP32</Text>
+                <Text style={styles.instructionText}>Power on your ESP unit (USB cable or batteries)</Text>
               </View>
               
               <View style={styles.instructionItem}>
                 <View style={styles.instructionNumber}>
                   <Text style={styles.instructionNumberText}>2</Text>
                 </View>
-                <Text style={styles.instructionText}>Plug the USB cable into a power source</Text>
+                <Text style={styles.instructionText}>If using batteries, flip the power switch to ON</Text>
               </View>
               
               <View style={styles.instructionItem}>
                 <View style={styles.instructionNumber}>
                   <Text style={styles.instructionNumberText}>3</Text>
                 </View>
-                <Text style={styles.instructionText}>Check that the power LED is lit up.</Text>
+                <Text style={styles.instructionText}>Verify the power LED indicator is illuminated</Text>
               </View>
             </View>
           </>

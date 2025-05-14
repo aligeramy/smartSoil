@@ -45,8 +45,7 @@
       "resourceClass": "large",
       "env": {
         "APP_VARIANT": "optimized"
-      },
-      "prebuildCommand": "npm run generate:icons"
+      }
     },
     "androidAab": {
       "extends": "production",
