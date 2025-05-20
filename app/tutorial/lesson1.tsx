@@ -5,28 +5,28 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    Platform,
-    Pressable,
-    RefreshControl,
-    Animated as RNAnimated,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  ActivityIndicator,
+  Image,
+  Platform,
+  Pressable,
+  RefreshControl,
+  Animated as RNAnimated,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import Animated, {
-    FadeInDown,
-    FadeOut
+  FadeInDown,
+  FadeOut
 } from 'react-native-reanimated';
 
 // Import centralized ESP utilities from lib index
 import {
-    analogToMoisture,
-    fetchAllSensorData,
-    getEspBaseUrl
+  analogToMoisture,
+  fetchAllSensorData,
+  getEspBaseUrl
 } from '@/lib';
 
 // Lesson 1 steps
@@ -518,9 +518,9 @@ export default function Lesson1Screen() {
         <ScrollView 
           style={styles.sensorScrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.sensorScrollContent}
+          contentContainerStyle={[styles.sensorScrollContent, { alignItems: 'center' }]}
         >
-          <View style={styles.sensorExplainerContainer}>
+          <View style={[styles.sensorExplainerContainer, { alignItems: 'center' }]}>
             <View style={styles.sensorItem}>
               <View style={styles.sensorImageContainer}>
                 <Image 
@@ -530,8 +530,8 @@ export default function Lesson1Screen() {
                 />
               </View>
               <View style={styles.sensorDetails}>
-                <Text style={styles.sensorTitle}>DHT11 Temperature & Humidity</Text>
-                <Text style={styles.sensorDescription}>
+                <Text style={[styles.sensorTitle, { textAlign: 'center' }]}>DHT11 Temperature & Humidity</Text>
+                <Text style={[styles.sensorDescription, { textAlign: 'center' }]}>
                   The DHT11 sensor measures air temperature and humidity.
                 </Text>
               </View>
@@ -553,8 +553,8 @@ export default function Lesson1Screen() {
                 />
               </View>
               <View style={styles.sensorDetails}>
-                <Text style={styles.sensorTitle}>Capacitive Soil Moisture</Text>
-                <Text style={styles.sensorDescription}>
+                <Text style={[styles.sensorTitle, { textAlign: 'center' }]}>Capacitive Soil Moisture</Text>
+                <Text style={[styles.sensorDescription, { textAlign: 'center' }]}>
                   The capacitive soil moisture sensor measures water content in soil.
                 </Text>
               </View>
@@ -574,7 +574,7 @@ export default function Lesson1Screen() {
                   <MaterialCommunityIcons name="thermometer" size={24} color="white" />
                 </View>
                 <View style={styles.applicationTextContainer}>
-                  <Text style={styles.applicationText}>Monitor optimal growing conditions for your plants</Text>
+                  <Text style={[styles.applicationText, { textAlign: 'center' }]}>Monitor optimal growing conditions for your plants</Text>
                 </View>
               </View>
               <View style={styles.applicationItem}>
@@ -582,7 +582,7 @@ export default function Lesson1Screen() {
                   <MaterialCommunityIcons name="water" size={24} color="white" />
                 </View>
                 <View style={styles.applicationTextContainer}>
-                  <Text style={styles.applicationText}>Automate watering based on soil moisture levels</Text>
+                  <Text style={[styles.applicationText, { textAlign: 'center' }]}>Automate watering based on soil moisture levels</Text>
                 </View>
               </View>
               <View style={styles.applicationItem}>
@@ -590,7 +590,7 @@ export default function Lesson1Screen() {
                   <MaterialCommunityIcons name="calendar-clock" size={24} color="white" />
                 </View>
                 <View style={styles.applicationTextContainer}>
-                  <Text style={styles.applicationText}>Track environmental data over time to optimize plant care</Text>
+                  <Text style={[styles.applicationText, { textAlign: 'center' }]}>Track environmental data over time to optimize plant care</Text>
                 </View>
               </View>
             </View>
@@ -1053,16 +1053,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
     borderRadius: 16,
     padding: 15,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
     overflow: 'hidden',
     marginBottom: 15,
+    width: '100%',
   },
   sensorImageContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    marginRight: 15,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 15,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -1074,7 +1076,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   sensorDetails: {
-    flex: 1,
+    width: '100%',
+    alignItems: 'center',
   },
   sensorTitle: {
     fontSize: Platform.OS === 'web' ? 20 : 18,
@@ -1135,7 +1138,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   applicationItem: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     gap: 12,
     marginBottom: 15,
@@ -1145,16 +1148,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   applicationIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 5,
+    marginBottom: 8,
   },
   applicationTextContainer: {
-    flex: 1,
+    width: '100%',
+    alignItems: 'center',
   },
   applicationText: {
     fontSize: Platform.OS === 'web' ? 17 : 15,

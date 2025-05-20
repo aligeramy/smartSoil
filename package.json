@@ -16,8 +16,8 @@
     "build:android": "npm run build:android-apk",
     "build:web": "npx expo export --platform web",
     "vercel-build": "npm run build:web && node scripts/fix-web-fonts.js",
-    "serve:web": "npx serve web-build",
-    "deploy:web": "npx vercel web-build --confirm"
+    "serve:web": "npx serve dist",
+    "deploy:web": "npx vercel dist --yes"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
