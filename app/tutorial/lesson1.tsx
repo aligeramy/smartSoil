@@ -1047,7 +1047,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 600,
     paddingHorizontal: Platform.OS === 'web' ? 20 : 5,
-    flexShrink: 1,
   },
   sensorItem: {
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -1061,8 +1060,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   sensorImageContainer: {
-    width: 120,
-    height: 120,
+    width: 60,
+    height: 60,
     borderRadius: 60,
     marginBottom: 15,
     justifyContent: 'center',

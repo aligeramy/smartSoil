@@ -2,14 +2,14 @@ import { useScreenSize } from '@/components/ui/ResponsiveLayout';
 import { ResponsiveText } from '@/components/ui/ResponsiveText';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
   Linking,
   Modal,
   Platform,
-  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -21,6 +21,16 @@ import {
 
 // Storage key for ESP IP address
 const ESP_IP_STORAGE_KEY = 'esp_ip_address';
+const UPDATE_FREQUENCY_KEY = 'update_frequency';
+
+// Define standard update frequency options
+const updateFrequencyOptions = [
+  { label: '5 seconds', value: 5000 },
+  { label: '30 seconds', value: 30000 },
+  { label: '1 minute', value: 60000 },
+  { label: '5 minutes', value: 300000 },
+  { label: '10 minutes', value: 600000 },
+];
 
 const SettingItem = ({ icon, title, subtitle, onPress, value }: {
   icon: React.ComponentProps<typeof Ionicons>['name'],
@@ -65,9 +75,13 @@ export default function SettingsScreen() {
   const [espModalVisible, setEspModalVisible] = useState(false);
   const [ipAddressInput, setIpAddressInput] = useState('');
   
-  // Load saved ESP IP address on mount
+  // State for update frequency
+  const [updateFrequency, setUpdateFrequency] = useState(5000); // Default 5 seconds
+  const [frequencyModalVisible, setFrequencyModalVisible] = useState(false);
+  
+  // Load saved ESP IP address and update frequency on mount
   useEffect(() => {
-    const loadStoredIpAddress = async () => {
+    const loadStoredSettings = async () => {
       try {
         // For web, use localStorage
         if (Platform.OS === 'web') {
@@ -76,14 +90,19 @@ export default function SettingsScreen() {
             setEspIpAddress(savedIp);
             setIpAddressInput(savedIp);
           }
+          
+          const savedFrequency = localStorage.getItem(UPDATE_FREQUENCY_KEY);
+          if (savedFrequency) {
+            setUpdateFrequency(parseInt(savedFrequency));
+          }
         }
         // For native, would use AsyncStorage (not implemented here)
       } catch (error) {
-        console.error('Failed to load IP address:', error);
+        console.error('Failed to load settings:', error);
       }
     };
     
-    loadStoredIpAddress();
+    loadStoredSettings();
   }, []);
   
   // Save ESP IP address
@@ -97,6 +116,19 @@ export default function SettingsScreen() {
     // For native, would use AsyncStorage (not implemented here)
     
     setEspModalVisible(false);
+  };
+  
+  // Save update frequency
+  const saveUpdateFrequency = (frequency: number) => {
+    setUpdateFrequency(frequency);
+    
+    // For web, use localStorage
+    if (Platform.OS === 'web') {
+      localStorage.setItem(UPDATE_FREQUENCY_KEY, frequency.toString());
+    }
+    // For native, would use AsyncStorage (not implemented here)
+    
+    setFrequencyModalVisible(false);
   };
   
   // Validate IP address format
@@ -125,38 +157,22 @@ export default function SettingsScreen() {
         <SafeAreaView style={styles.safeArea}>
           <View style={[styles.header, isLargeScreen && styles.headerLarge]}>
             <ResponsiveText variant="heading2" style={styles.headerTitle}>Settings</ResponsiveText>
+            <TouchableOpacity 
+              style={styles.headerLogo}
+              onPress={() => Linking.openURL('https://softx.ca')}
+            >
+              <Image 
+                source={require('@/assets/images/logo/tx.png')} 
+                style={styles.topLogoImage} 
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
           </View>
           
           <ScrollView style={styles.scrollView} contentContainerStyle={[
             styles.scrollContent, 
             isLargeScreen && styles.scrollContentLarge
           ]}>
-            <View style={styles.section}>
-              <ResponsiveText variant="heading3" style={styles.sectionTitle}>App Settings</ResponsiveText>
-              
-              <SettingItem
-                icon="notifications-outline"
-                title="Notifications"
-                subtitle="Configure push notifications"
-                onPress={() => Alert.alert("Notifications settings not available in this version")}
-              />
-              
-              <SettingItem
-                icon="color-palette-outline"
-                title="Appearance"
-                subtitle="Dark mode and themes"
-                onPress={() => Alert.alert("Appearance settings not available in this version")}
-              />
-              
-              <SettingItem
-                icon="language-outline"
-                title="Language"
-                subtitle="Choose your preferred language"
-                value="English"
-                onPress={() => Alert.alert("Language settings not available in this version")}
-              />
-            </View>
-            
             <View style={styles.section}>
               <ResponsiveText variant="heading3" style={styles.sectionTitle}>Sensor Configuration</ResponsiveText>
               
@@ -172,80 +188,59 @@ export default function SettingsScreen() {
               />
               
               <SettingItem
-                icon="refresh-outline"
+                icon="time-outline"
                 title="Update Frequency"
-                subtitle="How often to fetch sensor data"
-                value="5 seconds"
-                onPress={() => Alert.alert("Update frequency settings not available in this version")}
-              />
-              
-              <SettingItem
-                icon="analytics-outline"
-                title="Data History"
-                subtitle="Configure data retention period"
-                value="7 days"
-                onPress={() => Alert.alert("Data history settings not available in this version")}
+                subtitle="How often the dashboard refreshes sensor data"
+                value={updateFrequencyOptions.find(option => option.value === updateFrequency)?.label || '5 seconds'}
+                onPress={() => setFrequencyModalVisible(true)}
               />
             </View>
             
             <View style={styles.section}>
-              <ResponsiveText variant="heading3" style={styles.sectionTitle}>Legal & About</ResponsiveText>
+              <ResponsiveText variant="heading3" style={styles.sectionTitle}>Support & About</ResponsiveText>
               
-              <Link href="/privacy" asChild>
-                <Pressable>
-                  {({ pressed }) => (
-                    <View style={[
-                      styles.settingItem, 
-                      isLargeScreen && styles.settingItemLarge,
-                      pressed && styles.pressed
-                    ]}>
-                      <View style={styles.settingIconContainer}>
-                        <Ionicons name="shield-checkmark-outline" size={isLargeScreen ? 26 : 22} color="#FFFFFF" />
-                      </View>
-                      <View style={styles.settingContent}>
-                        <ResponsiveText variant="body" style={styles.settingTitle}>Privacy Policy</ResponsiveText>
-                        <ResponsiveText variant="caption" style={styles.settingSubtitle}>How we protect your data</ResponsiveText>
-                      </View>
-                      <Ionicons name="chevron-forward" size={isLargeScreen ? 24 : 20} color="#888888" />
-                    </View>
-                  )}
-                </Pressable>
-              </Link>
+              <SettingItem
+                icon="shield-checkmark-outline"
+                title="Privacy Policy"
+                subtitle="Read our privacy policy"
+                onPress={() => router.push('/privacy')}
+              />
               
-              <Link href="/terms" asChild>
-                <Pressable>
-                  {({ pressed }) => (
-                    <View style={[
-                      styles.settingItem, 
-                      isLargeScreen && styles.settingItemLarge,
-                      pressed && styles.pressed
-                    ]}>
-                      <View style={styles.settingIconContainer}>
-                        <Ionicons name="document-text-outline" size={isLargeScreen ? 26 : 22} color="#FFFFFF" />
-                      </View>
-                      <View style={styles.settingContent}>
-                        <ResponsiveText variant="body" style={styles.settingTitle}>Terms of Service</ResponsiveText>
-                        <ResponsiveText variant="caption" style={styles.settingSubtitle}>Legal terms for using SmartSoil</ResponsiveText>
-                      </View>
-                      <Ionicons name="chevron-forward" size={isLargeScreen ? 24 : 20} color="#888888" />
-                    </View>
-                  )}
-                </Pressable>
-              </Link>
+              <SettingItem
+                icon="document-text-outline"
+                title="Terms of Service"
+                subtitle="Read our terms of service"
+                onPress={() => router.push('/terms')}
+              />
               
               <SettingItem
                 icon="help-circle-outline"
                 title="Help & Support"
-                subtitle="Get assistance with the app"
-                onPress={() => openUrl("https://www.smartsoil-app.com/support")}
+                subtitle="Email us at support@softxinnovations.ca"
+                onPress={() => openUrl("mailto:support@softxinnovations.ca")}
               />
               
               <SettingItem
                 icon="information-circle-outline"
                 title="About SmartSoil"
                 subtitle={`Version ${appVersion}`}
-                onPress={() => Alert.alert("SmartSoil", "Developed by SoftX Innovations\n\nMonitor your plants' soil moisture, temperature, and humidity with ESP8266 sensors.")}
+                onPress={() => Alert.alert("SmartSoil", "Developed by SofTx Innovations Inc\n\nMonitor your plants' soil moisture, temperature, and humidity with ESP8266 sensors.")}
               />
+              
+              <View style={styles.brandingContainer}>
+                <View style={styles.brandingContent}>
+                  <Image 
+                    source={require('@/assets/images/logo/tx.png')} 
+                    style={styles.brandingLogo} 
+                    resizeMode="contain"
+                  />
+                  <View style={styles.brandingTextContainer}>
+                    <Text style={styles.brandingText}>POWERED BY</Text>
+                    <Text style={styles.brandingCompany}>SOFTX INNOVATIONS INC</Text>
+                    <Text style={styles.brandingContact}>support@softxinnovations.ca</Text>
+                  </View>
+                </View>
+              </View>
             </View>
             
             {/* For larger screens, add additional information section */}
@@ -366,6 +361,67 @@ export default function SettingsScreen() {
           </View>
         </View>
       </Modal>
+      
+      {/* Update Frequency Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={frequencyModalVisible}
+        onRequestClose={() => setFrequencyModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, isLargeScreen && styles.modalContainerLarge]}>
+            <View style={styles.modalHeader}>
+              <ResponsiveText variant="heading3" style={styles.modalTitle}>Update Frequency</ResponsiveText>
+              <TouchableOpacity onPress={() => setFrequencyModalVisible(false)} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalContent}>
+              <ResponsiveText variant="body" style={styles.modalText}>
+                Select how often the dashboard should refresh sensor data. More frequent updates provide 
+                real-time monitoring but may affect battery life of your ESP device.
+              </ResponsiveText>
+              
+              <View style={styles.frequencyOptions}>
+                {updateFrequencyOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.frequencyOption,
+                      updateFrequency === option.value && styles.frequencyOptionSelected
+                    ]}
+                    onPress={() => saveUpdateFrequency(option.value)}
+                  >
+                    <ResponsiveText 
+                      variant="body" 
+                      style={[
+                        styles.frequencyOptionText,
+                        updateFrequency === option.value && styles.frequencyOptionTextSelected
+                      ]}
+                    >
+                      {option.label}
+                    </ResponsiveText>
+                    {updateFrequency === option.value && (
+                      <Ionicons name="checkmark" size={22} color="#FFFFFF" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity 
+                  style={[styles.button, styles.cancelButton]} 
+                  onPress={() => setFrequencyModalVisible(false)}
+                >
+                  <ResponsiveText variant="body" style={styles.buttonText}>Cancel</ResponsiveText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -382,14 +438,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingVertical: 16,
+    paddingVertical: 15,
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 50 : 16,
+    paddingTop: Platform.OS === 'android' ? 50 : 15,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 5,
   },
   headerLarge: {
-    paddingVertical: 24,
+    paddingVertical: 15,
     paddingHorizontal: 30,
   },
   headerTitle: {
@@ -609,5 +669,73 @@ const styles = StyleSheet.create({
   instructionText: {
     color: 'rgba(255, 255, 255, 0.8)',
     flex: 1,
+  },
+  brandingContainer: {
+    marginTop: 20,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+  },
+  brandingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandingLogo: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+  },
+  brandingTextContainer: {
+    flexDirection: 'column',
+    marginLeft: 10,
+  },
+  brandingText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 11,
+    letterSpacing: 1,
+  },
+  brandingCompany: {
+    color: 'white',
+    fontSize: 13,
+    letterSpacing: 1.5,
+    fontWeight: '500',
+  },
+  brandingContact: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  frequencyOptions: {
+    marginBottom: 15,
+  },
+  frequencyOption: {
+    padding: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 8,
+    marginVertical: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  frequencyOptionSelected: {
+    borderColor: '#34C759',
+    backgroundColor: 'rgba(52, 199, 89, 0.1)',
+  },
+  frequencyOptionText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  frequencyOptionTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  headerLogo: {
+    padding: 5,
+  },
+  topLogoImage: {
+    width: 30,
+    height: 30,
   },
 }); 

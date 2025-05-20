@@ -42,6 +42,7 @@ export default function HomeScreen() {
                 style={styles.logo}
                 resizeMode="contain"
               />
+              <Text style={styles.companyText}>BY SOFTX INNOVATIONS INC</Text>
             </Animated.View>
 
             <Animated.View 
@@ -114,6 +115,13 @@ const styles = StyleSheet.create({
     width: 280,
     height: 100,
   },
+  companyText: {
+    color: ColorPalette.white,
+    fontSize: 12,
+    letterSpacing: 2,
+    marginTop: 10,
+    opacity: 0.9,
+  },
   textContainer: {
     alignItems: 'center',
     marginTop: 20,
@@ -123,7 +131,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: ColorPalette.white,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 0,
+
   },
   subtitle: {
     fontSize: 17,

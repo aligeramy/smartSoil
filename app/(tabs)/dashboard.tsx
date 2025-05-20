@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  Image,
   Platform,
   Pressable,
   RefreshControl,
@@ -30,7 +31,8 @@ import {
 
 // Constants - will be dynamically set from settings
 const ESP_IP_STORAGE_KEY = 'esp_ip_address';
-const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
+const UPDATE_FREQUENCY_KEY = 'update_frequency';
+const DEFAULT_UPDATE_INTERVAL = 5000; // 5 seconds default
 const DEFAULT_CHART_POINTS = 20;
 
 // Helper function to map values
@@ -90,6 +92,7 @@ export default function ESPDashboardScreen() {
   const [demoMode, setDemoMode] = useState(false);
   const [showMoistureInfo, setShowMoistureInfo] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [updateInterval, setUpdateInterval] = useState(DEFAULT_UPDATE_INTERVAL);
   // Debug logs state
   const [showLogs, setShowLogs] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -120,18 +123,65 @@ export default function ESPDashboardScreen() {
     router.back();
   }, []);
   
-  // Load ESP IP from storage
-  useEffect(() => {
+  // Function to load settings from storage
+  const loadSettings = useCallback(() => {
     // For web, use localStorage
     if (Platform.OS === 'web') {
+      // Load ESP IP
       const savedIp = localStorage.getItem(ESP_IP_STORAGE_KEY);
       if (savedIp) {
         setEspBaseUrl(savedIp);
         addLog('Using ESP IP from settings: ' + getEspBaseUrl());
       }
+      
+      // Load update frequency
+      const savedFrequency = localStorage.getItem(UPDATE_FREQUENCY_KEY);
+      if (savedFrequency) {
+        const frequency = parseInt(savedFrequency);
+        if (frequency !== updateInterval) {
+          setUpdateInterval(frequency);
+          addLog(`Update frequency changed to: ${frequency}ms`);
+        }
+      }
     }
     // For native apps, would use AsyncStorage (not implemented here)
-  }, []);
+  }, [updateInterval]);
+  
+  // Load ESP IP and update frequency from storage
+  useEffect(() => {
+    loadSettings();
+    
+    // Set up a timer to check for settings changes periodically
+    const settingsCheckId = setInterval(() => {
+      loadSettings();
+    }, 10000); // Check for setting changes every 10 seconds
+    
+    return () => {
+      clearInterval(settingsCheckId);
+    };
+  }, [loadSettings]);
+
+  // Check if trends data is empty and initialize if needed
+  useEffect(() => {
+    if (moistureHistory.length === 0 && temperatureHistory.length === 0 && humidityHistory.length === 0) {
+      // Initialize with current data point to avoid empty charts
+      setMoistureHistory([sensorData.moisture]);
+      setTemperatureHistory([sensorData.temperature]);
+      setHumidityHistory([sensorData.humidity]);
+      
+      if (demoMode) {
+        // Generate a few initial data points for history
+        for (let i = 0; i < DEFAULT_CHART_POINTS - 1; i++) {
+          setTimeout(() => {
+            if (demoMode) mockData();
+          }, i * 100);
+        }
+      } else {
+        // Trigger a data fetch
+        fetchData(false);
+      }
+    }
+  }, [demoMode]);
 
   // Start pulse animation for the "Live" indicator
   useEffect(() => {
@@ -247,6 +297,11 @@ export default function ESPDashboardScreen() {
       isConnected: false
     });
     
+    // Update history arrays for trends just like with real data
+    setMoistureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), Math.round(newMoisture)]);
+    setTemperatureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), Number(newTemp.toFixed(1))]);
+    setHumidityHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), Math.round(newHumidity)]);
+    
     // Set demo mode flag to true
     setDemoMode(true);
   };
@@ -256,19 +311,25 @@ export default function ESPDashboardScreen() {
     let intervalId: ReturnType<typeof setInterval>;
     
     if (autoRefresh) {
-      addLog('Auto-refresh enabled');
+      addLog(`Auto-refresh enabled with interval: ${updateInterval}ms`);
       intervalId = setInterval(() => {
         if (!refreshing && !loading) {
           addLog('Auto-refreshing data...');
-          fetchData(false);
+          if (demoMode) {
+            // If in demo mode, generate new mock data
+            mockData();
+          } else {
+            // Otherwise try to fetch real data
+            fetchData(false);
+          }
         }
-      }, AUTO_REFRESH_INTERVAL);
+      }, updateInterval);
     }
     
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [autoRefresh, refreshing, loading]);
+  }, [autoRefresh, refreshing, loading, updateInterval, demoMode]);
 
   // Initial data fetch when component mounts
   useEffect(() => {
@@ -281,7 +342,19 @@ export default function ESPDashboardScreen() {
         timeoutId = setTimeout(() => {
           if (!connected) {
             addLog('Could not connect to ESP, switching to demo mode');
-            mockData();
+            // Initialize history arrays with mock data
+            const initialMockData = () => {
+              mockData();
+              
+              // Generate a few initial data points for history
+              for (let i = 0; i < DEFAULT_CHART_POINTS - 1; i++) {
+                setTimeout(() => {
+                  if (demoMode) mockData();
+                }, i * 100);
+              }
+            };
+            
+            initialMockData();
           }
         }, 5000);
       }
@@ -325,22 +398,6 @@ export default function ESPDashboardScreen() {
                 <Ionicons name="chevron-back" size={isLargeScreen ? 28 : 24} color="white" />
               </Pressable>
               <ResponsiveText variant="heading2" style={styles.headerTitle}>ESP Dashboard</ResponsiveText>
-              {connected && !demoMode && (
-                <View style={styles.liveIndicator}>
-                  <Animated.View 
-                    style={[
-                      styles.liveDot, 
-                      { transform: [{ scale: pulseAnim }] }
-                    ]} 
-                  />
-                  <Text style={styles.liveText}>LIVE</Text>
-                </View>
-              )}
-              {demoMode && (
-                <View style={styles.demoIndicator}>
-                  <Text style={styles.demoText}>DEMO</Text>
-                </View>
-              )}
             </View>
             
             <View style={styles.connectionInfo}>
@@ -348,7 +405,13 @@ export default function ESPDashboardScreen() {
                 <ActivityIndicator size={isLargeScreen ? "large" : "small"} color="#fff" />
               ) : connected ? (
                 <View style={styles.connectionStatus}>
-                  <View style={[styles.statusDot, { backgroundColor: '#28a745' }]} />
+                  <Animated.View 
+                    style={[
+                      styles.statusDot, 
+                      { backgroundColor: '#28a745' },
+                      { transform: [{ scale: pulseAnim }] }
+                    ]} 
+                  />
                   <ResponsiveText variant="caption" style={styles.statusText}>Connected</ResponsiveText>
                 </View>
               ) : demoMode ? (
@@ -604,70 +667,6 @@ export default function ESPDashboardScreen() {
               </View>
             </View>
             
-            {/* Controls and Info */}
-            <View style={[
-              styles.controlsContainer,
-              isLargeScreen && styles.controlsContainerLarge
-            ]}>
-              <Pressable 
-                style={[
-                  styles.controlButton, 
-                  !autoRefresh && styles.controlButtonActive,
-                  isLargeScreen && styles.controlButtonLarge
-                ]} 
-                onPress={() => setAutoRefresh(!autoRefresh)}
-              >
-                <Ionicons 
-                  name={autoRefresh ? "pause-circle-outline" : "play-circle-outline"} 
-                  size={isLargeScreen ? 24 : 20} 
-                  color="#fff" 
-                />
-                <ResponsiveText variant="caption" style={styles.controlText}>
-                  {autoRefresh ? "Pause Auto-Refresh" : "Resume Auto-Refresh"}
-                </ResponsiveText>
-              </Pressable>
-              
-              <Pressable 
-                style={[
-                  styles.controlButton,
-                  isLargeScreen && styles.controlButtonLarge
-                ]} 
-                onPress={() => fetchData(true)}
-              >
-                <Ionicons name="refresh-outline" size={isLargeScreen ? 24 : 20} color="#fff" />
-                <ResponsiveText variant="caption" style={styles.controlText}>Refresh Now</ResponsiveText>
-              </Pressable>
-              
-              <Pressable 
-                style={[
-                  styles.controlButton,
-                  showLogs && styles.controlButtonActive,
-                  isLargeScreen && styles.controlButtonLarge
-                ]} 
-                onPress={() => setShowLogs(!showLogs)}
-              >
-                <Ionicons name="code-outline" size={isLargeScreen ? 24 : 20} color="#fff" />
-                <ResponsiveText variant="caption" style={styles.controlText}>
-                  {showLogs ? "Hide Logs" : "Show Logs"}
-                </ResponsiveText>
-              </Pressable>
-              
-              <ResponsiveText variant="caption" style={styles.lastUpdatedText}>
-                Last updated: {sensorData.lastUpdated || 'Never'}
-              </ResponsiveText>
-              
-              {isLargeScreen && (
-                <View style={styles.espInfoContainer}>
-                  <ResponsiveText variant="caption" style={styles.espInfoText}>
-                    Connected to ESP8266 at: {getEspBaseUrl()}
-                  </ResponsiveText>
-                  <ResponsiveText variant="caption" style={styles.espInfoText}>
-                    To change the IP address, please visit the Settings page.
-                  </ResponsiveText>
-                </View>
-              )}
-            </View>
-            
             {/* Debug Logs Section */}
             {showLogs && (
               <View style={styles.logsContainer}>
@@ -705,13 +704,52 @@ export default function ESPDashboardScreen() {
               </View>
             )}
 
-            {/* Ensure the auto-refresh toggle uses the new state and handler */}
-            <View style={styles.settingsRow}>
-              <Text style={styles.settingLabel}>Auto Refresh:</Text>
-              <Switch
-                value={autoRefresh}
-                onValueChange={setAutoRefresh}
-              />
+            {/* Control Panel */}
+            <View style={styles.controlPanel}>
+              <View style={styles.controlButtons}>
+                <View style={styles.toggleContainer}>
+                  <Text style={styles.toggleLabel}>Auto Refresh</Text>
+                  <Switch
+                    value={autoRefresh}
+                    onValueChange={setAutoRefresh}
+                    style={styles.toggleSwitch}
+                  />
+                </View>
+                
+                <View style={styles.buttonGroup}>
+                  <Pressable 
+                    style={styles.smallButton} 
+                    onPress={() => fetchData(true)}
+                  >
+                    <Ionicons name="refresh-outline" size={16} color="#fff" />
+                    <Text style={styles.smallButtonText}>Refresh</Text>
+                  </Pressable>
+                  
+                  <Pressable 
+                    style={[styles.smallButton, showLogs && styles.smallButtonActive]} 
+                    onPress={() => setShowLogs(!showLogs)}
+                  >
+                    <Ionicons name="code-outline" size={16} color="#fff" />
+                    <Text style={styles.smallButtonText}>{showLogs ? "Hide" : "Logs"}</Text>
+                  </Pressable>
+                </View>
+              </View>
+              
+              {/* SOFTX branding footer */}
+              <View style={styles.brandingContainer}>
+                <View style={styles.brandingContent}>
+                  <Image 
+                    source={require('@/assets/images/logo/tx.png')} 
+                    style={styles.brandingLogo} 
+                    resizeMode="contain"
+                  />
+                  <View style={styles.brandingTextContainer}>
+                    <Text style={styles.brandingText}>POWERED BY</Text>
+                    <Text style={styles.brandingCompany}>SOFTX INNOVATIONS INC</Text>
+                    <Text style={styles.brandingContact}>support@softxinnovations.ca</Text>
+                  </View>
+                </View>
+              </View>
             </View>
           </ScrollView>
         </SafeAreaView>
@@ -749,41 +787,25 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   headerTitle: {
     fontWeight: 'bold',
     color: '#fff',
     marginLeft: 8,
+    flex: 1,
+    marginTop: 10,
   },
   backButton: {
     padding: 8,
     borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
-  liveIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(40, 167, 69, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 12,
-  },
-  liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#28a745',
-    marginRight: 6,
-  },
-  liveText: {
-    fontSize: 12,
-    color: '#28a745',
-    fontWeight: 'bold',
-  },
   connectionInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    minWidth: 44,
+    justifyContent: 'flex-end',
   },
   connectionStatus: {
     flexDirection: 'row',
@@ -1006,63 +1028,90 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 2,
   },
-  controlsContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
+  controlPanel: {
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    marginTop: 10,
   },
-  controlsContainerLarge: {
+  controlButtons: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 10,
+    padding: 12,
   },
-  controlButton: {
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  toggleLabel: {
+    color: 'white',
+    fontSize: 14,
+    marginRight: 10,
+  },
+  toggleSwitch: {
+    transform: [{ scale: 0.8 }],
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+  },
+  smallButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 30,
-    marginBottom: 12,
-  },
-  controlButtonLarge: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginHorizontal: 8,
-  },
-  controlButtonActive: {
-    backgroundColor: 'rgba(220, 53, 69, 0.3)',
-  },
-  controlText: {
-    color: '#fff',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
     marginLeft: 8,
   },
-  lastUpdatedText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginTop: 4,
+  smallButtonActive: {
+    backgroundColor: 'rgba(220, 53, 69, 0.3)',
   },
-  demoIndicator: {
-    backgroundColor: 'rgba(255, 149, 0, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 12,
-  },
-  demoText: {
+  smallButtonText: {
+    color: 'white',
     fontSize: 12,
-    color: '#FF9500',
-    fontWeight: 'bold',
+    marginLeft: 4,
   },
-  espInfoContainer: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 8,
-    width: '100%',
+  brandingContainer: {
+    marginTop: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
+    marginBottom: 10,
   },
-  espInfoText: {
+  brandingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandingLogo: {
+    width: 35,
+    height: 35,
+    marginRight: 10,
+  },
+  brandingTextContainer: {
+    flexDirection: 'column',
+    marginLeft: 5,
+  },
+  brandingText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 11,
+    letterSpacing: 1,
+  },
+  brandingCompany: {
+    color: 'white',
+    fontSize: 13,
+    letterSpacing: 1.5,
+    fontWeight: '500',
+  },
+  brandingContact: {
     color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 4,
+    fontSize: 11,
+    marginTop: 2,
   },
   logsContainer: {
     padding: 16,
@@ -1117,15 +1166,5 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontSize: 12,
     marginTop: 10,
-  },
-  settingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-  },
-  settingLabel: {
-    color: '#fff',
-    fontWeight: 'bold',
-    marginRight: 16,
   },
 }); 

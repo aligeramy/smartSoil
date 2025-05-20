@@ -411,6 +411,9 @@ const ModelFeatureGame = () => {
             </View>
           ) : null;
         })}
+        
+        {/* Empty space at the bottom to ensure content above fixed card is visible when scrolled to bottom */}
+        <View style={styles.bottomPadding} />
       </ScrollView>
       
       {/* Performance Metrics/Matrix Card (fixed at bottom) */}
@@ -547,7 +550,7 @@ const styles = StyleSheet.create({
   },
   featureGameScrollContent: {
     padding: 15,
-    paddingBottom: 120, // Space for the fixed metrics card
+    paddingBottom: 180, // Increased padding to ensure enough space for the fixed metrics card
   },
   equationContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -657,7 +660,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   fixedMetricsCard: {
-    position: 'fixed',
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
@@ -675,7 +678,7 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 30 : 10,
   },
   bottomPadding: {
-    height: 120, // Match WateringDecisionTool's padding
+    height: 150, // Increased to ensure enough space
   },
   metricCardContent: {
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
