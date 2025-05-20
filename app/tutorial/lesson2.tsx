@@ -22,10 +22,11 @@ import Animated, {
   withTiming
 } from 'react-native-reanimated';
 
-// Helper function to map values from one range to another
-function mapValue(x: number, in_min: number, in_max: number, out_min: number, out_max: number): number {
-  return Math.max(out_min, Math.min(out_max, (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min));
-}
+// Import centralized ESP utilities from lib index
+import {
+  fetchAllSensorData,
+  moistureToAnalog
+} from '@/lib';
 
 // Lesson 2 steps
 const lesson2Steps = [
@@ -35,7 +36,7 @@ const lesson2Steps = [
     customComponent: true
   },
   {
-    title: 'Analog Values',
+    title: 'Raw Analog Values',
     description: 'See how soil moisture sensors output raw values that need interpretation.',
     customComponent: true
   },
@@ -60,7 +61,9 @@ const mockSensorData = {
   temperature: 24.3,
   humidity: 58.6,
   heatIndex: 25.1,
-  rawAnalog: 642
+  rawAnalog: 642,
+  resistanceTop: 5500,
+  resistanceBottom: 10000 // Changed from 9800 to exactly 10000 ohms (10kΩ)
 };
 
 // Constants
@@ -75,88 +78,49 @@ const DataVisualizationIntro = () => {
   const [lastUpdated, setLastUpdated] = useState("");
   
   // Fetch data from ESP8266
-  const fetchESPData = async () => {
+  const fetchData = async () => {
     if (demoMode) {
       // In demo mode, simulate small data changes
       const moistureVar = Math.floor(Math.random() * 10) - 5;
       const tempVar = (Math.random() * 1.5 - 0.75).toFixed(1);
       const humVar = (Math.random() * 3 - 1.5).toFixed(1);
       
+      // Simulate resistance values changing with moisture
+      const rTopVar = Math.floor(Math.random() * 500) - 250;
+      const rBottomVar = Math.floor(Math.random() * 500) - 250;
+      
       setSensorData(prev => ({
         moisture: Math.max(20, Math.min(80, prev.moisture + moistureVar)),
         temperature: Math.max(18, Math.min(30, prev.temperature + parseFloat(tempVar))),
         humidity: Math.max(40, Math.min(85, prev.humidity + parseFloat(humVar))),
         heatIndex: prev.temperature + 1.5,
-        rawAnalog: Math.round(mapValue(prev.moisture + moistureVar, 0, 100, 1023, 300))
+        rawAnalog: moistureToAnalog(prev.moisture + moistureVar),
+        resistanceTop: Math.max(2000, Math.min(8000, prev.resistanceTop + rTopVar)),
+        resistanceBottom: Math.max(6000, Math.min(14000, prev.resistanceBottom + rBottomVar))
       }));
       setLastUpdated(new Date().toLocaleTimeString());
       return;
     }
     
     try {
-      console.log(`Attempting to connect to ESP at: ${ESP_BASE}`);
+      // Use the centralized functions to fetch data
+      const data = await fetchAllSensorData();
       
-      // Try to fetch DHT11 data
-      // Create an AbortController with timeout for compatibility
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`, {
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      const rawDHT = await dhtRes.text();
-      console.log(`DHT11 data received: ${rawDHT}`);
-      
-      // Parse the values from the DHT11 - format: "humidity temperature heatIndex"
-      const dhtValues = rawDHT.trim().split(" ");
-      const humidityStr = dhtValues[0];
-      const temperatureStr = dhtValues[1];
-      const heatIndexStr = dhtValues.length > 2 ? dhtValues[2] : null;
-      
-      // Try to fetch analog data
-      // Create a new controller for the second fetch
-      const controller2 = new AbortController();
-      const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
-      
-      const analogRes = await fetch(`${ESP_BASE}/raw_a`, {
-        signal: controller2.signal
-      });
-      
-      clearTimeout(timeoutId2);
-      
-      const rawAnalogText = await analogRes.text();
-      console.log(`Analog data received: ${rawAnalogText}`);
-      const rawAnalogValue = parseInt(rawAnalogText.trim());
-      
-      // If we got valid data, update the state
-      if (!isNaN(rawAnalogValue) && humidityStr && temperatureStr) {
-        const tempValue = parseFloat(temperatureStr);
-        const humValue = parseFloat(humidityStr);
-        
-        // Get heat index directly from sensor if available
-        let heatIndex = tempValue; // Default to temperature if heat index not available
-        if (heatIndexStr && !isNaN(parseFloat(heatIndexStr))) {
-          heatIndex = parseFloat(heatIndexStr);
-          console.log(`Using heat index from sensor: ${heatIndex}`);
-        } else {
-          console.log('Heat index not provided by sensor, using temperature');
-        }
-        
+      if (data) {
         setSensorData({
-          moisture: Math.round(mapValue(rawAnalogValue, 1023, 300, 0, 100)),
-          temperature: tempValue,
-          humidity: humValue,
-          heatIndex: heatIndex,
-          rawAnalog: rawAnalogValue
+          moisture: data.moisture,
+          temperature: data.temperature,
+          humidity: data.humidity,
+          heatIndex: data.temperature, // Use temperature as heat index for now
+          rawAnalog: data.rawAnalog,
+          resistanceTop: data.resistanceTop || 5500, // Default if not available
+          resistanceBottom: data.resistanceBottom || 10000 // Changed from 9800 to exactly 10000 ohms (10kΩ)
         });
         
         setConnected(true);
         setLastUpdated(new Date().toLocaleTimeString());
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log("ESP connection not available, using demo mode");
       // If first attempt fails, switch to demo mode silently
       if (!connected && !demoMode) {
@@ -169,10 +133,10 @@ const DataVisualizationIntro = () => {
   // Setup timer for data updates
   useEffect(() => {
     // Try connecting to ESP on first load
-    fetchESPData();
+    fetchData();
     
     // Set up interval for updates
-    const timer = setInterval(fetchESPData, 3000);
+    const timer = setInterval(fetchData, 3000);
     return () => clearInterval(timer);
   }, []);
   
@@ -292,20 +256,20 @@ const AnalogValuesComponent = () => {
         </Text>
         <View style={styles.analogScaleContainer}>
           <View style={styles.analogPercentLabels}>
-            <Text style={styles.analogPercentValue}>100%</Text>
-            <Text style={styles.analogPercentValue}>50%</Text>
             <Text style={styles.analogPercentValue}>0%</Text>
+            <Text style={styles.analogPercentValue}>50%</Text>
+            <Text style={styles.analogPercentValue}>100%</Text>
           </View>
           <View style={styles.analogScale}>
             <View style={styles.analogScaleLabels}>
               <Text style={styles.analogScaleValue}>0</Text>
-              <Text style={styles.analogScaleValue}>512</Text>
-              <Text style={styles.analogScaleValue}>1023</Text>
+              <Text style={styles.analogScaleValue}>425</Text>
+              <Text style={styles.analogScaleValue}>850</Text>
             </View>
           </View>
           <View style={styles.analogScaleDescriptions}>
-            <Text style={styles.analogDescription}>Wet Soil</Text>
             <Text style={styles.analogDescription}>Dry Soil</Text>
+            <Text style={styles.analogDescription}>Wet Soil</Text>
           </View>
         </View>
         
@@ -315,8 +279,8 @@ const AnalogValuesComponent = () => {
         <View style={styles.voltageScaleWrapper}>
           <View style={styles.voltageLabelsRow}>
             <Text style={styles.voltageValue}>0V</Text>
-            <Text style={styles.voltageValue}>2V</Text>
-            <Text style={styles.voltageValue}>3V</Text>
+            <Text style={styles.voltageValue}>1.7V</Text>
+            <Text style={styles.voltageValue}>3.3V</Text>
             <Text style={styles.voltageValue}>5V</Text>
             <Text style={styles.voltageTitle}>Voltage Values</Text>
           </View>
@@ -333,8 +297,8 @@ const AnalogValuesComponent = () => {
           
           <View style={styles.analogLabelsRow}>
             <Text style={styles.analogValue}>0  </Text>
-            <Text style={styles.analogValue}>     409</Text>
-            <Text style={styles.analogValue}>     614</Text>
+            <Text style={styles.analogValue}>     425</Text>
+            <Text style={styles.analogValue}>     850</Text>
             <Text style={styles.analogValue}>  1023</Text>
             <Text style={styles.analogTitle}>Equivalent Analog Value</Text>
           </View>
@@ -349,6 +313,9 @@ const InteractiveMoistureComponent = () => {
   const [sliderValue, setSliderValue] = useState<number>(mockSensorData.moisture);
   const moistureStatus = getMoistureStatus(sliderValue);
   const plantStatus = getPracticalAdvice(sliderValue);
+  
+  // Calculate the equivalent analog value
+  const equivalentAnalog = moistureToAnalog(sliderValue);
   
   // Custom simplified slider implementation
   const [isTouching, setIsTouching] = useState(false);
@@ -433,7 +400,9 @@ const InteractiveMoistureComponent = () => {
                 {sliderValue}%
               </Text>
             </View>
-            
+            <View style={styles.analogValueDisplay}>
+              <Text style={styles.analogValueText}>Analog: {equivalentAnalog}</Text>
+            </View>
           </View>
         </View>
         
@@ -464,8 +433,8 @@ const InteractiveMoistureComponent = () => {
           />
           <View style={styles.sliderScaleLabels}>
             <Text style={styles.sliderScaleValue}>0</Text>
-            <Text style={styles.sliderScaleValue}>512</Text>
-            <Text style={styles.sliderScaleValue}>1023</Text>
+            <Text style={styles.sliderScaleValue}>425</Text>
+            <Text style={styles.sliderScaleValue}>850</Text>
           </View>
           <Pressable
             style={styles.sliderPressArea}
@@ -1812,5 +1781,16 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: 'rgba(0, 0, 0, 0.7)',
     fontWeight: 'bold',
+  },
+  analogValueDisplay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 8,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    marginLeft: 8,
+  },
+  analogValueText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
 }); 

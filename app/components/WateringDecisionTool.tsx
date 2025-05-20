@@ -13,13 +13,12 @@ const sliderStyle = {
 // Define a type for all slider values
 type AllValues = {
   x1: number; // soilMoisture
-  x2: number; // growthStage
-  x3: number; // rainfallRolling
-  x4: number; // tempRolling
-  x5: number; // humidityRolling
-  x6: number; // rainfallForecast
-  x7: number; // tempForecast
-  x8: number; // humidityForecast
+  x2: number; // rainfallRolling
+  x3: number; // tempRolling
+  x4: number; // humidityRolling
+  x5: number; // rainfallForecast
+  x6: number; // tempForecast
+  x7: number; // humidityForecast
 };
 
 // Define FactorSlider outside the main component to avoid recreation on each render
@@ -52,7 +51,7 @@ const FactorSlider = React.memo(({
         <Pressable
           style={styles.arrowButton}
           hitSlop={8}
-          onPress={() => onChange(Math.max(min, value - 1))}
+          onPress={() => onChange(Math.max(min, value - 0.5))}
         >
           <Ionicons name="chevron-back" size={20} color="white" />
         </Pressable>
@@ -63,7 +62,7 @@ const FactorSlider = React.memo(({
           maximumValue={max}
           value={value}
           onValueChange={onChange}
-          step={1}
+          step={0.01}
           minimumTrackTintColor="#007AFF"
           maximumTrackTintColor="rgba(255, 255, 255, 0.2)"
           thumbTintColor="#FFFFFF"
@@ -72,16 +71,16 @@ const FactorSlider = React.memo(({
         <Pressable
           style={styles.arrowButton}
           hitSlop={8}
-          onPress={() => onChange(Math.min(max, value + 1))}
+          onPress={() => onChange(Math.min(max, value + 0.5))}
         >
           <Ionicons name="chevron-forward" size={20} color="white" />
         </Pressable>
       </View>
 
       <View style={styles.sliderFooter}>
-        <Text style={styles.sliderMinMax}>{min}</Text>
-        <Text style={styles.sliderValue}>{value.toFixed(0)}</Text>
-        <Text style={styles.sliderMinMax}>{max}</Text>
+        <Text style={styles.sliderMinMax}>{min.toFixed(1)}</Text>
+        <Text style={styles.sliderValue}>{value.toFixed(2)}</Text>
+        <Text style={styles.sliderMinMax}>{max.toFixed(1)}</Text>
       </View>
     </View>
   );
@@ -95,13 +94,12 @@ const WateringDecisionTool = () => {
   // Combined state for all values
   const [allValues, setAllValues] = useState<AllValues>({
     x1: 30, // soilMoisture
-    x2: 2,  // growthStage fixed to Vegetative
-    x3: 50, // rainfallRolling
-    x4: 28, // tempRolling
-    x5: 65, // humidityRolling
-    x6: 15, // rainfallForecast
-    x7: 28, // tempForecast
-    x8: 65, // humidityForecast
+    x2: 50, // rainfallRolling
+    x3: 28, // tempRolling
+    x4: 65, // humidityRolling
+    x5: 15, // rainfallForecast
+    x6: 28, // tempForecast
+    x7: 65, // humidityForecast
   });
   
   const [decision, setDecision] = useState("");
@@ -109,18 +107,17 @@ const WateringDecisionTool = () => {
   
   // Function to compute the decision based on all values
   const computeDecision = useCallback((values: AllValues) => {
-    // Decision boundary formula:
-    // f(x) = -0.0418 * x1 + -0.6112 * x2 + -0.0195 * x3 + -0.1025 * x4 + -0.0280 * x5 + -0.0995 * x6 + -0.0875 * x7 + 0.0186 * x8 + 10.2879
+    // New Decision Boundary Formula:
+    // -0.1338 * x1 + -0.0161 * x2 + 0.0997 * x3 + -0.0065 * x4 + -0.1156 * x5 + 0.0598 * x6 + 0.0004 * x7 + 1.5264
     const result =
-      -0.0418 * values.x1 +
-      -0.6112 * values.x2 +
-      -0.0195 * values.x3 +
-      -0.1025 * values.x4 +
-      -0.028 * values.x5 +
-      -0.0995 * values.x6 +
-      -0.0875 * values.x7 +
-      0.0186 * values.x8 +
-      10.2879;
+      -0.1338 * values.x1 +
+      -0.0161 * values.x2 +
+      0.0997 * values.x3 +
+      -0.0065 * values.x4 +
+      -0.1156 * values.x5 +
+      0.0598 * values.x6 +
+      0.0004 * values.x7 +
+      1.5264;
 
     setDecisionValue(result);
     setDecision(result < 0 ? "DO NOT WATER" : "WATER");
@@ -178,7 +175,7 @@ const WateringDecisionTool = () => {
                 label="Soil Moisture (x1)"
                 value={allValues.x1}
                 onChange={onSliderChange('x1')}
-                coefficient={-0.0418}
+                coefficient={-0.1338}
                 min={5}
                 max={50}
               />
@@ -187,10 +184,10 @@ const WateringDecisionTool = () => {
             <View style={styles.factorItem}>
               <FactorSlider
                 icon={<Ionicons name="rainy-outline" size={18} color="#007AFF" />}
-                label="Rainfall Rolling (x3)"
-                value={allValues.x3}
-                onChange={onSliderChange('x3')}
-                coefficient={-0.0195}
+                label="Rainfall Rolling (x2)"
+                value={allValues.x2}
+                onChange={onSliderChange('x2')}
+                coefficient={-0.0161}
                 min={0}
                 max={100}
               />
@@ -199,10 +196,10 @@ const WateringDecisionTool = () => {
             <View style={styles.factorItem}>
               <FactorSlider
                 icon={<Ionicons name="thermometer-outline" size={18} color="#FF3B30" />}
-                label="Temp Rolling (x4)"
-                value={allValues.x4}
-                onChange={onSliderChange('x4')}
-                coefficient={-0.1025}
+                label="Temp Rolling (x3)"
+                value={allValues.x3}
+                onChange={onSliderChange('x3')}
+                coefficient={0.0997}
                 min={15}
                 max={40}
               />
@@ -211,10 +208,10 @@ const WateringDecisionTool = () => {
             <View style={styles.factorItem}>
               <FactorSlider
                 icon={<Ionicons name="cloud-outline" size={18} color="#8E8E93" />}
-                label="Humidity Rolling (x5)"
-                value={allValues.x5}
-                onChange={onSliderChange('x5')}
-                coefficient={-0.028}
+                label="Humidity Rolling (x4)"
+                value={allValues.x4}
+                onChange={onSliderChange('x4')}
+                coefficient={-0.0065}
                 min={35}
                 max={100}
               />
@@ -222,11 +219,11 @@ const WateringDecisionTool = () => {
             
             <View style={styles.factorItem}>
               <FactorSlider
-                icon={<Ionicons name="rainy-outline" size={18} color="#007AFF" />}
-                label="Rainfall Forecast (x6)"
-                value={allValues.x6}
-                onChange={onSliderChange('x6')}
-                coefficient={-0.0995}
+                icon={<Ionicons name="rainy-outline" size={18} color="#FF9500" />}
+                label="Rainfall Forecast (x5)"
+                value={allValues.x5}
+                onChange={onSliderChange('x5')}
+                coefficient={-0.1156}
                 min={0}
                 max={35}
               />
@@ -234,11 +231,11 @@ const WateringDecisionTool = () => {
             
             <View style={styles.factorItem}>
               <FactorSlider
-                icon={<Ionicons name="thermometer-outline" size={18} color="#FF3B30" />}
-                label="Temp Forecast (x7)"
-                value={allValues.x7}
-                onChange={onSliderChange('x7')}
-                coefficient={-0.0875}
+                icon={<Ionicons name="thermometer-outline" size={18} color="#FF9500" />}
+                label="Temp Forecast (x6)"
+                value={allValues.x6}
+                onChange={onSliderChange('x6')}
+                coefficient={0.0598}
                 min={15}
                 max={40}
               />
@@ -246,28 +243,26 @@ const WateringDecisionTool = () => {
             
             <View style={styles.factorItem}>
               <FactorSlider
-                icon={<Ionicons name="cloud-outline" size={18} color="#8E8E93" />}
-                label="Humidity Forecast (x8)"
-                value={allValues.x8}
-                onChange={onSliderChange('x8')}
-                coefficient={0.0186}
+                icon={<Ionicons name="cloud-outline" size={18} color="#FF9500" />}
+                label="Humidity Forecast (x7)"
+                value={allValues.x7}
+                onChange={onSliderChange('x7')}
+                coefficient={0.0004}
                 min={35}
                 max={100}
               />
             </View>
-            
-            {/* Growth Stage fixed to Vegetative (2) – selector removed */}
           </View>
           
           {/* Formula Card */}
           <View style={styles.formulaCard}>
             <Text style={styles.formulaTitle}>Decision Boundary Formula:</Text>
             <Text style={styles.formulaText}>
-              f(x) = -0.0418 * x1 + -0.6112 * x2 + -0.0195 * x3 + -0.1025 * x4 + -0.0280 * x5 + -0.0995 * x6 + -0.0875 * x7 + 0.0186 * x8 + 10.2879
+              f(x) = -0.1338 * x1 + -0.0161 * x2 + 0.0997 * x3 + -0.0065 * x4 + -0.1156 * x5 + 0.0598 * x6 + 0.0004 * x7 + 1.5264
             </Text>
             <Text style={styles.formulaDescription}>
-              Where: x1 = Soil_Moisture, x2 = Growth_Stage, x3 = Rainfall_Rolling, x4 = Temp_Rolling, x5 = Humidity_Rolling,
-              x6 = Rainfall_Forecast, x7 = Temp_Forecast, x8 = Humidity_Forecast
+              Where: x1 = Soil_Moisture, x2 = Rainfall_Rolling, x3 = Temp_Rolling, x4 = Humidity_Rolling,
+              x5 = Rainfall_Forecast, x6 = Temp_Forecast, x7 = Humidity_Forecast
             </Text>
             <View style={styles.formulaResult}>
               <Text style={styles.formulaResultText}>If f(x) &lt; 0 then </Text>
@@ -469,7 +464,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   fixedBottomCard: {
-    position: 'fixed',
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,

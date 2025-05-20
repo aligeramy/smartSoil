@@ -5,22 +5,29 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Image,
-  Platform,
-  Pressable,
-  RefreshControl,
-  Animated as RNAnimated,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
+    ActivityIndicator,
+    Image,
+    Platform,
+    Pressable,
+    RefreshControl,
+    Animated as RNAnimated,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 import Animated, {
-  FadeInDown,
-  FadeOut
+    FadeInDown,
+    FadeOut
 } from 'react-native-reanimated';
+
+// Import centralized ESP utilities from lib index
+import {
+    analogToMoisture,
+    fetchAllSensorData,
+    getEspBaseUrl
+} from '@/lib';
 
 // Lesson 1 steps
 const lesson1Steps = [
@@ -66,6 +73,8 @@ function mapValue(x: number, in_min: number, in_max: number, out_min: number, ou
 // Update the ESPDataVisualizer to show raw data in simple, smaller cards
 const ESPDataVisualizer = ({ onConnected, demoMode: initialDemoMode = false }: { onConnected: () => void, demoMode?: boolean }) => {
   const [rawAnalog, setRawAnalog] = useState<number | null>(null);
+  const [resistanceTop, setResistanceTop] = useState<number | null>(null);
+  const [resistanceBottom, setResistanceBottom] = useState<number | null>(null);
   const [rawHumidity, setRawHumidity] = useState<string | null>(null);
   const [rawTemperature, setRawTemperature] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,90 +87,29 @@ const ESPDataVisualizer = ({ onConnected, demoMode: initialDemoMode = false }: {
   const fadeAnim = React.useRef(new RNAnimated.Value(1)).current;
   const scaleAnim = React.useRef(new RNAnimated.Value(1)).current;
 
-  // Fetch data from ESP8266
-  const fetchData = async (showLoadingIndicator = false) => {
-    if (showLoadingIndicator) setRefreshing(true);
-
+  // Replace the fetchESPData function with one that uses the central utilities
+  const fetchESPData = async () => {
+    setConnectionError(false);
+    setLoading(true);
+    
     try {
-      // Animate value change
-      RNAnimated.sequence([
-        RNAnimated.parallel([
-          RNAnimated.timing(fadeAnim, {
-            toValue: 0.5,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          RNAnimated.timing(scaleAnim, {
-            toValue: 0.95,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]),
-        RNAnimated.parallel([
-          RNAnimated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          RNAnimated.timing(scaleAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start();
+      console.log(`Attempting to connect to ESP at: ${getEspBaseUrl()}`);
       
-      console.log(`Attempting to connect to ESP at: ${ESP_BASE}`);
+      // Use the centralized function to fetch all sensor data
+      const data = await fetchAllSensorData();
       
-      try {
-        // Create an AbortController with timeout for compatibility
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+      if (data) {
+        // Data fetched successfully, update state
+        setRawAnalog(data.rawAnalog);
+        setResistanceTop(data.resistanceTop || null);
+        setResistanceBottom(data.resistanceBottom || null);
+        setRawHumidity(data.humidity.toString());
+        setRawTemperature(data.temperature.toString());
         
-        const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`, {
-          signal: controller.signal
-        });
+        // Calculate moisture percentage using utility function
+        const moisturePercentage = analogToMoisture(data.rawAnalog);
+        console.log(`Calculated moisture: ${moisturePercentage}% (Analog: ${data.rawAnalog})`);
         
-        clearTimeout(timeoutId);
-        
-        const rawDHT = await dhtRes.text();
-        console.log(`DHT11 data received: ${rawDHT}`);
-        
-        // Split the DHT response into humidity, temperature, and heat index
-        const dhtValues = rawDHT.trim().split(" ");
-        const humidityStr = dhtValues[0];
-        const temperatureStr = dhtValues[1];
-        const heatIndexStr = dhtValues.length > 2 ? dhtValues[2] : null;
-
-        // Create a new controller for the second fetch
-        const controller2 = new AbortController();
-        const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
-        
-        const analogRes = await fetch(`${ESP_BASE}/raw_a`, {
-          signal: controller2.signal
-        });
-        
-        clearTimeout(timeoutId2);
-
-        const rawAnalogText = await analogRes.text();
-        console.log(`Analog data received: ${rawAnalogText}`);
-        const rawAnalogValue = parseInt(rawAnalogText.trim());
-
-        // Round to 1 significant figure for simplicity
-        const tempRounded = Math.round(parseFloat(temperatureStr || "0"));
-        const humRounded = Math.round(parseFloat(humidityStr || "0"));
-        
-        // Use heat index if provided, otherwise default to temperature
-        let heatIndexRounded = tempRounded;
-        if (heatIndexStr && !isNaN(parseFloat(heatIndexStr))) {
-          heatIndexRounded = Math.round(parseFloat(heatIndexStr));
-          console.log(`Using heat index from sensor: ${heatIndexRounded}`);
-        }
-
-        setRawHumidity(humRounded.toString());
-        setRawTemperature(tempRounded.toString());
-        setRawAnalog(rawAnalogValue);
-        setLastUpdated(new Date().toLocaleTimeString());
         setConnectionError(false);
         setDemoMode(false);
         
@@ -169,24 +117,19 @@ const ESPDataVisualizer = ({ onConnected, demoMode: initialDemoMode = false }: {
         if (loading) {
           onConnected();
         }
-      } catch (fetchError: any) {
-        console.error("Fetch error details:", fetchError.message || fetchError);
-        throw new Error(`ESP fetch failed: ${fetchError.message || "Unknown fetch error"}`);
+      } else {
+        throw new Error("Failed to get valid data from ESP8266");
       }
-    } catch (error: any) {
-      // Log detailed error information
-      console.error("ESP connection failed in Lesson 1:");
-      console.error(error.name ? `Error name: ${error.name}` : "No error name");
-      console.error(error.message ? `Error message: ${error.message}` : "No error message");
-      console.error(Platform.OS === 'android' ? "Running on Android" : "Running on " + Platform.OS);
-      console.error(`Network URL attempted: ${ESP_BASE}`);
-      
-      console.log("ESP connection not available, using demo mode");
+    } catch (error) {
+      console.error("Error fetching ESP data:", error);
+      console.error(`Network URL attempted: ${getEspBaseUrl()}`);
       setConnectionError(true);
       setDemoMode(true);
       if (rawAnalog === null) {
         // Set some mock data for display when not connected
-        setRawAnalog(642);
+        setRawAnalog(500); // Changed from 642 to 500 to match new scale
+        setResistanceTop(5500);
+        setResistanceBottom(10000); // Changed from 9800 to exactly 10000 ohms (10kΩ)
         setRawHumidity("59");
         setRawTemperature("24");
       }
@@ -198,13 +141,13 @@ const ESPDataVisualizer = ({ onConnected, demoMode: initialDemoMode = false }: {
 
   // Manual refresh handler
   const onRefresh = () => {
-    fetchData(true);
+    fetchESPData();
   };
 
   // Set up the interval to fetch data
   useEffect(() => {
-    fetchData(); // Fetch data on first load
-    const interval = setInterval(() => fetchData(), 3000); // Refresh every 3 sec
+    fetchESPData(); // Fetch data on first load
+    const interval = setInterval(() => fetchESPData(), 3000); // Refresh every 3 sec
     return () => clearInterval(interval); // Cleanup interval on unmount
   }, []);
 

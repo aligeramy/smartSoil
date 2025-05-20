@@ -1,24 +1,34 @@
 import { useScreenSize } from '@/components/ui/ResponsiveLayout';
 import { ResponsiveText } from '@/components/ui/ResponsiveText';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Animated,
-    Platform,
-    Pressable,
-    RefreshControl,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  ActivityIndicator,
+  Animated,
+  Platform,
+  Pressable,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+  useColorScheme
 } from 'react-native';
 
+// Import centralized ESP utility functions from lib index
+import {
+  fetchAllSensorData,
+  getEspBaseUrl,
+  moistureToAnalog,
+  setEspBaseUrl
+} from '@/lib';
+
 // Constants - will be dynamically set from settings
-let ESP_BASE = "http://192.168.4.1";
 const ESP_IP_STORAGE_KEY = 'esp_ip_address';
 const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
 const DEFAULT_CHART_POINTS = 20;
@@ -37,17 +47,35 @@ const getMoistureLevel = (percentage: number) => {
   return { level: 'Wet', color: '#007AFF', icon: 'water' };
 };
 
+// Type for sensor data
+type SensorData = {
+  moisture: number;
+  temperature: number;
+  humidity: number;
+  rawAnalog: number;
+  resistanceTop?: number;
+  resistanceBottom?: number;
+  heatIndex: number;
+  isConnected: boolean;
+  lastUpdated: string;
+};
+
 // Dashboard for Live ESP Data
 export default function ESPDashboardScreen() {
   const { isLargeScreen } = useScreenSize();
+  const colorScheme = useColorScheme();
   
   // State for sensor data
-  const [sensorData, setSensorData] = useState({
-    moisture: 0,
-    temperature: 0,
-    humidity: 0,
+  const [sensorData, setSensorData] = useState<SensorData>({
+    moisture: 35,
+    temperature: 25.0,
+    humidity: 55,
     rawAnalog: 0,
+    resistanceTop: undefined,
+    resistanceBottom: undefined,
     heatIndex: 0,
+    isConnected: false,
+    lastUpdated: "",
   });
 
   // History data for charts
@@ -60,9 +88,8 @@ export default function ESPDashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState("");
-  const [autoRefresh, setAutoRefresh] = useState(true);
   const [showMoistureInfo, setShowMoistureInfo] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   // Debug logs state
   const [showLogs, setShowLogs] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -72,6 +99,11 @@ export default function ESPDashboardScreen() {
   const temperatureAnim = useRef(new Animated.Value(0)).current;
   const humidityAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Keep connected state in sync with sensorData.isConnected
+  useEffect(() => {
+    setConnected(sensorData.isConnected);
+  }, [sensorData.isConnected]);
 
   // Add log function
   const addLog = (message: string) => {
@@ -94,8 +126,8 @@ export default function ESPDashboardScreen() {
     if (Platform.OS === 'web') {
       const savedIp = localStorage.getItem(ESP_IP_STORAGE_KEY);
       if (savedIp) {
-        ESP_BASE = `http://${savedIp}`;
-        addLog('Using ESP IP from settings: ' + ESP_BASE);
+        setEspBaseUrl(savedIp);
+        addLog('Using ESP IP from settings: ' + getEspBaseUrl());
       }
     }
     // For native apps, would use AsyncStorage (not implemented here)
@@ -121,199 +153,152 @@ export default function ESPDashboardScreen() {
     pulse();
   }, []);
 
-  // Simulate data for demo mode
-  const simulateData = () => {
-    const moistureVar = Math.floor(Math.random() * 10) - 5;
-    const tempVar = (Math.random() * 2 - 1).toFixed(1);
-    const humVar = (Math.random() * 4 - 2).toFixed(1);
-    
-    // Use previous value and add some variation
-    setSensorData(prev => {
-      const newMoisture = Math.max(5, Math.min(95, prev.moisture + moistureVar));
-      const newTemp = Math.max(18, Math.min(32, prev.temperature + parseFloat(tempVar)));
-      const newHum = Math.max(30, Math.min(90, prev.humidity + parseFloat(humVar)));
-      const newRaw = Math.round(mapValue(newMoisture, 0, 100, 1023, 300));
-      const newHeatIndex = newTemp + (newHum > 40 ? 2 : 0); // Simple demo heat index
-      
-      return {
-        moisture: newMoisture,
-        temperature: newTemp,
-        humidity: newHum,
-        rawAnalog: newRaw,
-        heatIndex: newHeatIndex,
-      };
-    });
-    
-    // Update history after a delay
-    setTimeout(() => {
-      setMoistureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), sensorData.moisture]);
-      setTemperatureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), sensorData.temperature]);
-      setHumidityHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), sensorData.humidity]);
-    }, 100);
-    
-    setLastUpdated(new Date().toLocaleTimeString());
-    addLog('Updated demo data');
-  };
-
-  // Fetch real data from ESP8266
-  const fetchESPData = async (isManualRefresh = false) => {
-    if (isManualRefresh) setRefreshing(true);
-    
-    if (demoMode) {
-      simulateData();
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
+  // Fetch data function using centralized utility
+  const fetchData = async (showLoadingIndicator = true): Promise<boolean> => {
+    if (showLoadingIndicator) setLoading(true);
     
     try {
-      // Check for updated ESP IP from settings
-      if (Platform.OS === 'web') {
-        const savedIp = localStorage.getItem(ESP_IP_STORAGE_KEY);
-        if (savedIp) {
-          ESP_BASE = `http://${savedIp}`;
-        }
+      // Check if we have a saved IP address
+      const savedIp = await AsyncStorage.getItem('esp-ip');
+      if (savedIp) {
+        setEspBaseUrl(savedIp);
+        addLog('Using ESP IP from settings: ' + getEspBaseUrl());
       }
       
-      addLog(`Attempting to connect to ESP at: ${ESP_BASE}`);
+      // Use the centralized function to fetch all sensor data
+      const data = await fetchAllSensorData(addLog);
       
-      try {
-        // Create an AbortController with timeout for compatibility
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+      if (data) {
+        // Data fetched successfully, update state
+        setSensorData({
+          ...sensorData,
+          temperature: data.temperature,
+          humidity: data.humidity,
+          moisture: data.moisture,
+          rawAnalog: data.rawAnalog,
+          resistanceTop: data.resistanceTop,
+          resistanceBottom: data.resistanceBottom,
+          heatIndex: data.temperature, // Use temperature as heat index for now
+          lastUpdated: new Date().toLocaleTimeString(),
+          isConnected: true,
+        });
+
+        // Update history arrays
+        setMoistureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), data.moisture]);
+        setTemperatureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), data.temperature]);
+        setHumidityHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), data.humidity]);
         
-        const dhtRes = await fetch(`${ESP_BASE}/raw_dht11`, { 
-          headers: { 'Cache-Control': 'no-cache' },
-          signal: controller.signal
+        // Set demo mode to false when connected
+        setDemoMode(false);
+        
+        return true;
+      } else {
+        // Handle connection error - show demo data
+        const newMoisture = Math.max(10, Math.min(95, sensorData.moisture + (Math.random() > 0.5 ? -1 : 1) * Math.random() * 5));
+        const newTemp = Math.max(15, Math.min(35, sensorData.temperature + (Math.random() > 0.5 ? -0.2 : 0.2)));
+        const newHumidity = Math.max(20, Math.min(80, sensorData.humidity + (Math.random() > 0.5 ? -1 : 1) * Math.random() * 3));
+        
+        // Use utility function to convert moisture to analog
+        const newRaw = moistureToAnalog(newMoisture);
+        
+        setSensorData({
+          ...sensorData,
+          moisture: Math.round(newMoisture),
+          temperature: Number(newTemp.toFixed(1)),
+          humidity: Math.round(newHumidity),
+          rawAnalog: newRaw,
+          heatIndex: Number(newTemp.toFixed(1)), // Use temperature as heat index
+          lastUpdated: new Date().toLocaleTimeString(),
+          isConnected: false,
         });
         
-        clearTimeout(timeoutId);
-        
-        const rawDHT = await dhtRes.text();
-        addLog(`DHT11 data received: ${rawDHT}`);
-        
-        // Parse 3 values from sensor: humidity, temperature, heat index
-        const dhtValues = rawDHT.trim().split(" ");
-        const humidityStr = dhtValues[0];
-        const temperatureStr = dhtValues[1];
-        const heatIndexStr = dhtValues.length > 2 ? dhtValues[2] : null;
-        
-        // Create a new controller for the second fetch
-        const controller2 = new AbortController();
-        const timeoutId2 = setTimeout(() => controller2.abort(), 5000);
-        
-        // Try to fetch analog data
-        const analogRes = await fetch(`${ESP_BASE}/raw_a`, { 
-          headers: { 'Cache-Control': 'no-cache' },
-          signal: controller2.signal
-        });
-        
-        clearTimeout(timeoutId2);
-        
-        const rawAnalogText = await analogRes.text();
-        addLog(`Analog data received: ${rawAnalogText}`);
-        const rawAnalogValue = parseInt(rawAnalogText.trim());
-        
-        // If we got valid data, update the state
-        if (!isNaN(rawAnalogValue) && humidityStr && temperatureStr) {
-          const tempValue = parseFloat(temperatureStr);
-          const humValue = parseFloat(humidityStr);
-          
-          // Use heat index directly from sensor if available, otherwise use temperature
-          let heatIndex = tempValue;
-          if (heatIndexStr && !isNaN(parseFloat(heatIndexStr))) {
-            heatIndex = parseFloat(heatIndexStr);
-            addLog(`Using heat index from sensor: ${heatIndex}`);
-          } else {
-            addLog('Heat index not provided by sensor, using temperature');
-          }
-          
-          // Calculate moisture percentage from raw analog
-          const moisturePercentage = Math.round(mapValue(rawAnalogValue, 1023, 300, 0, 100));
-          addLog(`Calculated moisture: ${moisturePercentage}%`);
-          
-          // Update the data with smooth animation
-          Animated.parallel([
-            Animated.timing(moistureAnim, {
-              toValue: moisturePercentage,
-              duration: 500,
-              useNativeDriver: false
-            }),
-            Animated.timing(temperatureAnim, {
-              toValue: tempValue,
-              duration: 500,
-              useNativeDriver: false
-            }),
-            Animated.timing(humidityAnim, {
-              toValue: humValue,
-              duration: 500,
-              useNativeDriver: false
-            })
-          ]).start();
-          
-          setSensorData({
-            moisture: moisturePercentage,
-            temperature: tempValue,
-            humidity: humValue,
-            heatIndex: heatIndex,
-            rawAnalog: rawAnalogValue
-          });
-          
-          // Update history arrays
-          setMoistureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), moisturePercentage]);
-          setTemperatureHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), tempValue]);
-          setHumidityHistory(prev => [...prev.slice(-DEFAULT_CHART_POINTS + 1), humValue]);
-          
-          setConnected(true);
-          setLastUpdated(new Date().toLocaleTimeString());
-          addLog('Successfully updated sensor data');
-        }
-      } catch (fetchError: any) {
-        addLog(`Fetch error: ${fetchError.message || fetchError}`);
-        throw new Error(`Fetch failed: ${fetchError.message || "Unknown fetch error"}`);
-      }
-    } catch (error: any) {
-      // Log more detailed error information for diagnosis
-      addLog(`ESP connection error: ${error.message || "Unknown error"}`);
-      addLog(`Error type: ${error.name || "No error name"}`);
-      addLog(`Platform: ${Platform.OS}`);
-      addLog(`Network URL attempted: ${ESP_BASE}`);
-      
-      if (!connected && !demoMode) {
-        // If first attempt fails, switch to demo mode
-        addLog("Switching to demo mode");
+        // Set demo mode flag to true
         setDemoMode(true);
-        simulateData();
         
-        // Populate history with initial demo data
-        if (moistureHistory.length === 0) {
-          const initialMoisture = Array(DEFAULT_CHART_POINTS).fill(0).map(() => Math.floor(Math.random() * 40) + 30);
-          const initialTemp = Array(DEFAULT_CHART_POINTS).fill(0).map(() => Math.floor(Math.random() * 5) + 23);
-          const initialHumidity = Array(DEFAULT_CHART_POINTS).fill(0).map(() => Math.floor(Math.random() * 20) + 50);
-          
-          setMoistureHistory(initialMoisture);
-          setTemperatureHistory(initialTemp);
-          setHumidityHistory(initialHumidity);
-        }
+        return false;
       }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      addLog(`Error fetching data: ${error}`);
+      return false;
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
-  
+
+  // Mock data for demo mode
+  const mockData = () => {
+    // Generate random values for demo mode
+    const newMoisture = Math.max(10, Math.min(95, 50 + (Math.random() > 0.5 ? -1 : 1) * Math.random() * 30));
+    const newTemp = Math.max(18, Math.min(32, 24 + (Math.random() > 0.5 ? -1 : 1) * Math.random() * 5));
+    const newHumidity = Math.max(30, Math.min(90, 60 + (Math.random() > 0.5 ? -1 : 1) * Math.random() * 20));
+    
+    // Use utility function to convert moisture to analog
+    const newRaw = moistureToAnalog(newMoisture);
+
+    setSensorData({
+      moisture: Math.round(newMoisture),
+      temperature: Number(newTemp.toFixed(1)),
+      humidity: Math.round(newHumidity),
+      rawAnalog: newRaw,
+      heatIndex: Number(newTemp.toFixed(1)), // Use temperature as heat index
+      lastUpdated: new Date().toLocaleTimeString(),
+      isConnected: false
+    });
+    
+    // Set demo mode flag to true
+    setDemoMode(true);
+  };
+
   // Set up auto-refresh interval
   useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+    
     if (autoRefresh) {
-      fetchESPData(); // Initial fetch
-      
-      const interval = setInterval(() => {
-        fetchESPData();
+      addLog('Auto-refresh enabled');
+      intervalId = setInterval(() => {
+        if (!refreshing && !loading) {
+          addLog('Auto-refreshing data...');
+          fetchData(false);
+        }
       }, AUTO_REFRESH_INTERVAL);
-      
-      return () => clearInterval(interval);
     }
-  }, [autoRefresh]);
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [autoRefresh, refreshing, loading]);
+
+  // Initial data fetch when component mounts
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    
+    // Try to fetch data initially
+    fetchData().then(success => {
+      // If not successful after 5 seconds, switch to demo mode
+      if (!success) {
+        timeoutId = setTimeout(() => {
+          if (!connected) {
+            addLog('Could not connect to ESP, switching to demo mode');
+            mockData();
+          }
+        }, 5000);
+      }
+    });
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
+
+  // Handle manual refresh
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchData(true)
+      .then(() => setRefreshing(false))
+      .catch(() => setRefreshing(false));
+  };
   
   // Get moisture level info
   const moistureInfo = getMoistureLevel(sensorData.moisture);
@@ -366,14 +351,14 @@ export default function ESPDashboardScreen() {
                   <View style={[styles.statusDot, { backgroundColor: '#28a745' }]} />
                   <ResponsiveText variant="caption" style={styles.statusText}>Connected</ResponsiveText>
                 </View>
-              ) : (
+              ) : demoMode ? (
                 <View style={styles.connectionStatus}>
-                  <View style={[styles.statusDot, { backgroundColor: '#dc3545' }]} />
+                  <View style={[styles.statusDot, { backgroundColor: '#FF9500' }]} />
                   <ResponsiveText variant="caption" style={styles.statusText}>
-                    Disconnected
+                    Demo Mode
                   </ResponsiveText>
                 </View>
-              )}
+              ) : null}
             </View>
           </View>
           
@@ -387,7 +372,7 @@ export default function ESPDashboardScreen() {
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
-                onRefresh={() => fetchESPData(true)}
+                onRefresh={handleRefresh}
                 tintColor="#fff"
               />
             }
@@ -647,7 +632,7 @@ export default function ESPDashboardScreen() {
                   styles.controlButton,
                   isLargeScreen && styles.controlButtonLarge
                 ]} 
-                onPress={() => fetchESPData(true)}
+                onPress={() => fetchData(true)}
               >
                 <Ionicons name="refresh-outline" size={isLargeScreen ? 24 : 20} color="#fff" />
                 <ResponsiveText variant="caption" style={styles.controlText}>Refresh Now</ResponsiveText>
@@ -668,13 +653,13 @@ export default function ESPDashboardScreen() {
               </Pressable>
               
               <ResponsiveText variant="caption" style={styles.lastUpdatedText}>
-                Last updated: {lastUpdated || 'Never'}
+                Last updated: {sensorData.lastUpdated || 'Never'}
               </ResponsiveText>
               
               {isLargeScreen && (
                 <View style={styles.espInfoContainer}>
                   <ResponsiveText variant="caption" style={styles.espInfoText}>
-                    Connected to ESP8266 at: {ESP_BASE}
+                    Connected to ESP8266 at: {getEspBaseUrl()}
                   </ResponsiveText>
                   <ResponsiveText variant="caption" style={styles.espInfoText}>
                     To change the IP address, please visit the Settings page.
@@ -708,11 +693,10 @@ export default function ESPDashboardScreen() {
                 
                 <View style={styles.connectionInfo}>
                   <Text style={styles.connectionInfoText}>
-                    ESP IP: {ESP_BASE}
+                    ESP IP: {getEspBaseUrl()}
                   </Text>
                   <Text style={styles.connectionInfoText}>
-                    Status: {connected ? 'Connected' : 'Disconnected'} 
-                    {demoMode ? ' (Demo Mode)' : ''}
+                    Status: {connected ? 'Connected' : demoMode ? 'Demo Mode' : ''} 
                   </Text>
                   <Text style={styles.connectionInfoText}>
                     Platform: {Platform.OS}
@@ -720,6 +704,15 @@ export default function ESPDashboardScreen() {
                 </View>
               </View>
             )}
+
+            {/* Ensure the auto-refresh toggle uses the new state and handler */}
+            <View style={styles.settingsRow}>
+              <Text style={styles.settingLabel}>Auto Refresh:</Text>
+              <Switch
+                value={autoRefresh}
+                onValueChange={setAutoRefresh}
+              />
+            </View>
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
@@ -1124,5 +1117,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontSize: 12,
     marginTop: 10,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  settingLabel: {
+    color: '#fff',
+    fontWeight: 'bold',
+    marginRight: 16,
   },
 }); 
