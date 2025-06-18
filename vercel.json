@@ -1,48 +1,4 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "dist/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/_expo/static/fonts/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      },
-      "continue": true
-    },
-    {
-      "src": "/_expo/static/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      },
-      "dest": "/_expo/static/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      },
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*)\\.(.+)",
-      "dest": "/$1.$2"
-    },
-    {
-      "src": "/(.*)/(.*)",
-      "dest": "/$1/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  "outputDirectory": "dist"
 } 

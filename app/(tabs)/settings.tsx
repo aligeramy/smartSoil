@@ -5,18 +5,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Image,
-  Linking,
-  Modal,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    Image,
+    Linking,
+    Modal,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 // Storage key for ESP IP address
@@ -253,7 +253,7 @@ export default function SettingsScreen() {
                   <ResponsiveText variant="caption" style={styles.infoPanelText}>
                     SmartSoil connects to ESP8266 microcontrollers that act as web servers, providing
                     soil moisture, temperature, and humidity data. For best results, use the DHT11 sensor for
-                    temperature and humidity, and a capacitive soil moisture sensor.
+                    temperature and humidity, and a resistive soil moisture sensor.
                   </ResponsiveText>
                   
                   <ResponsiveText variant="heading3" style={styles.subInfoTitle}>Connection Instructions</ResponsiveText>

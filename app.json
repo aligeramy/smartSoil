@@ -20,15 +20,16 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "icon": "./assets/images/logo/icon/icon.png",
+      "icon": "./assets/images/logo/icon/ios-tinted.png",
       "userInterfaceStyle": "automatic",
       "bundleIdentifier": "com.softxinnovations.smartsoil",
-      "buildNumber": "1.0.0",
+      "buildNumber": "9",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSBluetoothAlwaysUsageDescription": "This app uses Bluetooth to connect to nearby soil moisture sensors.",
         "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to connect to nearby soil moisture sensors.",
-        "NSLocalNetworkUsageDescription": "This app uses your local network to discover and connect to ESP8266 soil moisture sensors."
+        "NSLocalNetworkUsageDescription": "This app uses your local network to discover and connect to ESP8266 soil moisture sensors.",
+        "UIBackgroundModes": ["bluetooth-central"]
       },
       "associatedDomains": [
         "applinks:smartsoil-app.com"
@@ -89,8 +90,8 @@
       "typedRoutes": true
     },
     "description": "SmartSoil is an IoT application that helps gardeners and plant enthusiasts monitor soil moisture, temperature, and humidity using ESP8266-based sensors. Get real-time data, view historical trends, and receive watering recommendations for healthier plants.",
-    "githubUrl": "https://github.com/yourusername/smartsoil",
-    "owner": "SOFTXinnovations",
+    "githubUrl": "https://github.com/softxinnovations/smartsoil",
+    "owner": "softxinnovations",
     "extra": {
       "router": {
         "origin": false
@@ -103,7 +104,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/your-eas-project-id"
+      "url": "https://u.expo.dev/334467c2-f1d5-4a0e-b474-061f1ab4d9c9"
     },
     "locales": {
       "en": "./locales/en.json"

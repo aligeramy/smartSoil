@@ -262,9 +262,9 @@ const AnalogValuesComponent = () => {
           </View>
           <View style={styles.analogScale}>
             <View style={styles.analogScaleLabels}>
-              <Text style={styles.analogScaleValue}>0</Text>
-              <Text style={styles.analogScaleValue}>425</Text>
-              <Text style={styles.analogScaleValue}>850</Text>
+                          <Text style={styles.analogScaleValue}>0</Text>
+            <Text style={styles.analogScaleValue}>512</Text>
+            <Text style={styles.analogScaleValue}>1023</Text>
             </View>
           </View>
           <View style={styles.analogScaleDescriptions}>
@@ -433,8 +433,8 @@ const InteractiveMoistureComponent = () => {
           />
           <View style={styles.sliderScaleLabels}>
             <Text style={styles.sliderScaleValue}>0</Text>
-            <Text style={styles.sliderScaleValue}>425</Text>
-            <Text style={styles.sliderScaleValue}>850</Text>
+            <Text style={styles.sliderScaleValue}>512</Text>
+            <Text style={styles.sliderScaleValue}>1023</Text>
           </View>
           <Pressable
             style={styles.sliderPressArea}

@@ -10,18 +10,27 @@
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
+      },
+      "ios": {
+        "simulator": true
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+      "distribution": "internal"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+      },
+      "ios": {
+        "resourceClass": "m1-medium"
       },
       "resourceClass": "large"
     },
@@ -53,6 +62,30 @@
         "buildType": "app-bundle"
       },
       "resourceClass": "large"
+    },
+    "ios-testflight": {
+      "distribution": "store",
+      "ios": {
+        "resourceClass": "large",
+        "simulator": false,
+        "autoIncrement": true
+      },
+      "autoIncrement": true,
+      "cache": {
+        "key": "ios-release-v1"
+      }
+    },
+    "ios-appstore": {
+      "distribution": "store",
+      "ios": {
+        "resourceClass": "large",
+        "simulator": false,
+      "autoIncrement": true
+      },
+      "autoIncrement": true,
+      "cache": {
+        "key": "ios-appstore-v1"
+      }
     }
   },
   "submit": {
@@ -62,9 +95,9 @@
         "track": "production"
       },
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "1234567890",
-        "appleTeamId": "AB12345678"
+        "appleId": "ali@softxinnovations.ca",
+        "ascAppId": "6745529852",
+        "appleTeamId": "23MN72U7PA"
       }
     },
     "internal": {
@@ -72,6 +105,12 @@
         "track": "internal",
         "releaseStatus": "completed",
         "serviceAccountKeyPath": "./google-play/service-account.json"
+      },
+      "ios": {
+        "companyName": "SOFTX Innovations",
+        "appleId": "ali@softxinnovations.ca",
+        "ascAppId": "6745529852",
+        "appleTeamId": "23MN72U7PA"
       }
     },
     "beta": {
@@ -79,6 +118,12 @@
         "track": "beta",
         "releaseStatus": "completed",
         "serviceAccountKeyPath": "./google-play/service-account.json"
+      },
+      "ios": {
+        "companyName": "SOFTX Innovations",
+        "appleId": "ali@softxinnovations.ca",
+        "ascAppId": "6745529852",
+        "appleTeamId": "23MN72U7PA"
       }
     }
   }

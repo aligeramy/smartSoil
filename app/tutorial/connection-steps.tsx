@@ -5,18 +5,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
+    Image,
+    Platform,
+    Pressable,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 import Animated, {
-  FadeInDown,
-  FadeOut
+    FadeInDown,
+    FadeOut
 } from 'react-native-reanimated';
 
 // Connection steps content
@@ -34,7 +34,7 @@ const connectionSteps = [
   },
   {
     title: 'Step 2: Connect Soil Sensor',
-    description: 'Connect the Capacitive Soil Moisture Sensor v1.2:',
+    description: 'Connect the Resistive Soil Moisture Sensor v1.2:',
     points: [
       'VCC → 3V',
       'GND → G',

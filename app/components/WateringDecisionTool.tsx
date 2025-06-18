@@ -29,7 +29,8 @@ const FactorSlider = React.memo(({
   coefficient,
   icon,
   min = 0,
-  max = 100
+  max = 100,
+  unit = ""
 }: {
   label: string;
   value: number;
@@ -38,6 +39,7 @@ const FactorSlider = React.memo(({
   icon: React.ReactNode;
   min?: number;
   max?: number;
+  unit?: string;
 }) => {
   return (
     <View style={styles.sliderContainer}>
@@ -78,9 +80,9 @@ const FactorSlider = React.memo(({
       </View>
 
       <View style={styles.sliderFooter}>
-        <Text style={styles.sliderMinMax}>{min.toFixed(1)}</Text>
-        <Text style={styles.sliderValue}>{value.toFixed(2)}</Text>
-        <Text style={styles.sliderMinMax}>{max.toFixed(1)}</Text>
+        <Text style={styles.sliderMinMax}>{min.toFixed(1)}{unit}</Text>
+        <Text style={styles.sliderValue}>{value.toFixed(2)}{unit}</Text>
+        <Text style={styles.sliderMinMax}>{max.toFixed(1)}{unit}</Text>
       </View>
     </View>
   );
@@ -176,8 +178,9 @@ const WateringDecisionTool = () => {
                 value={allValues.x1}
                 onChange={onSliderChange('x1')}
                 coefficient={-0.1338}
-                min={5}
-                max={50}
+                min={0}
+                max={100}
+                unit="%"
               />
             </View>
             
@@ -189,7 +192,8 @@ const WateringDecisionTool = () => {
                 onChange={onSliderChange('x2')}
                 coefficient={-0.0161}
                 min={0}
-                max={100}
+                max={150}
+                unit="ml"
               />
             </View>
             
@@ -200,8 +204,9 @@ const WateringDecisionTool = () => {
                 value={allValues.x3}
                 onChange={onSliderChange('x3')}
                 coefficient={0.0997}
-                min={15}
-                max={40}
+                min={10}
+                max={45}
+                unit="°C"
               />
             </View>
             
@@ -214,6 +219,7 @@ const WateringDecisionTool = () => {
                 coefficient={-0.0065}
                 min={35}
                 max={100}
+                unit="%"
               />
             </View>
             
@@ -225,7 +231,8 @@ const WateringDecisionTool = () => {
                 onChange={onSliderChange('x5')}
                 coefficient={-0.1156}
                 min={0}
-                max={35}
+                max={150}
+                unit="ml"
               />
             </View>
             
@@ -236,8 +243,9 @@ const WateringDecisionTool = () => {
                 value={allValues.x6}
                 onChange={onSliderChange('x6')}
                 coefficient={0.0598}
-                min={15}
-                max={40}
+                min={10}
+                max={45}
+                unit="°C"
               />
             </View>
             
@@ -250,6 +258,7 @@ const WateringDecisionTool = () => {
                 coefficient={0.0004}
                 min={35}
                 max={100}
+                unit="%"
               />
             </View>
           </View>

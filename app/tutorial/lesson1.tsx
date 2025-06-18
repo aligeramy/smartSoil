@@ -5,28 +5,28 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Image,
-  Platform,
-  Pressable,
-  RefreshControl,
-  Animated as RNAnimated,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
+    ActivityIndicator,
+    Image,
+    Platform,
+    Pressable,
+    RefreshControl,
+    Animated as RNAnimated,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 import Animated, {
-  FadeInDown,
-  FadeOut
+    FadeInDown,
+    FadeOut
 } from 'react-native-reanimated';
 
 // Import centralized ESP utilities from lib index
 import {
-  analogToMoisture,
-  fetchAllSensorData,
-  getEspBaseUrl
+    analogToMoisture,
+    fetchAllSensorData,
+    getEspBaseUrl
 } from '@/lib';
 
 // Lesson 1 steps
@@ -553,9 +553,9 @@ export default function Lesson1Screen() {
                 />
               </View>
               <View style={styles.sensorDetails}>
-                <Text style={[styles.sensorTitle, { textAlign: 'center' }]}>Capacitive Soil Moisture</Text>
+                <Text style={[styles.sensorTitle, { textAlign: 'center' }]}>Resistive Soil Moisture</Text>
                 <Text style={[styles.sensorDescription, { textAlign: 'center' }]}>
-                  The capacitive soil moisture sensor measures water content in soil.
+                  The resistive soil moisture sensor measures water content in soil.
                 </Text>
               </View>
             </View>
