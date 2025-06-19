@@ -5,22 +5,35 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Image,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  Image,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import Animated, {
-    FadeInDown,
-    FadeOut
+  FadeInDown,
+  FadeOut
 } from 'react-native-reanimated';
 
 // Connection steps content
 const connectionSteps = [
+  {
+    title: 'Components You Need',
+    description: 'Gather the following items:',
+    components: [
+      { name: 'ESP8266 NodeMCU', description: 'Microcontroller board', image: require('@/assets/sections/parts/esp.png') },
+      { name: 'DHT11 Sensor', description: 'Temperature & humidity', image: require('@/assets/sections/parts/dht11.png') },
+              { name: 'Soil Moisture Sensor', description: 'Resistive moisture sensor', image: require('@/assets/sections/parts/resistive-sensor.png') },
+      { name: '10kΩ Resistor', description: 'Pull-down resistor', image: require('@/assets/sections/parts/10k.png') },
+      { name: 'Jumper Wires', description: 'Male-to-female', image: require('@/assets/sections/parts/wire.png') },
+      { name: 'Breadboard', description: 'For prototyping (optional)', image: require('@/assets/sections/parts/bread.png') }
+    ],
+    isComponentsList: true
+  },
   {
     title: 'Step 1: Identify Pins',
     description: 'Locate the following pins on your ESP8266:',
@@ -28,17 +41,16 @@ const connectionSteps = [
       '3V (Power)',
       'G (Ground)',
       'A0 (Analog Input)',
-      'D4 (Digital I/O for DHT11)'
+      'D1 (Digital I/O)'
     ],
     image: require('@/assets/sections/stepx/1.png') // Placeholder - use actual image
   },
   {
     title: 'Step 2: Connect Soil Sensor',
-    description: 'Connect the Resistive Soil Moisture Sensor v1.2:',
+    description: 'Connect the Resistive Soil Moisture Sensor and 10kΩ Resistor (pull-down):',
     points: [
-      'VCC → 3V',
-      'GND → G',
-      'OUT → A0'
+      'Resistive Sensor → 3V and A0',
+      '10kΩ Resistor → GND and A0'
     ],
     image: require('@/assets/sections/stepx/2.png') // Placeholder - use actual image
   },
@@ -46,9 +58,9 @@ const connectionSteps = [
     title: 'Step 3: Connect DHT11 Sensor',
     description: 'Connect the DHT11 Sensor:',
     points: [
-      'VCC → 3V',
-      'GND → G',
-      'DATA → D4'
+      '+ → 3V',
+      'OUT → D1', 
+      '- → GND'
     ],
     image: require('@/assets/sections/stepx/3.png') // Placeholder - use actual image
   }
@@ -100,18 +112,109 @@ export default function ConnectionStepsScreen() {
   const renderCurrentStep = () => {
     const step = connectionSteps[currentStep];
     
+    // Handle components list step
+    if (step.isComponentsList) {
+      return (
+        <View style={styles.stepContent}>
+          <Text style={styles.stepTitle}>{step.title}</Text>
+          <Text style={styles.stepDescription}>{step.description}</Text>
+          
+          <View style={styles.componentsGrid}>
+            {step.components?.map((component, index) => (
+              <View key={index} style={styles.componentCard}>
+                <Image 
+                  source={component.image} 
+                  style={styles.componentImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.componentName}>{component.name}</Text>
+                <Text style={styles.componentDescription}>{component.description}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      );
+    }
+    
     // Render each pin point with a bullet point and stylized pin label
     const renderPinPoint = (point: string, index: number) => {
       // Check which type of pin this is
       const isGroundPin = point.includes('G (Ground)') || point.includes('GND');
       const isVccPin = point.includes('VCC') || point.includes('3V');
       const isAnalogPin = point.includes('A0') || point.includes('Analog');
-      const isDataPin = point.includes('D4') || point.includes('DATA');
+      const isDataPin = point.includes('D1') || point.includes('DATA');
+      const isResistorConnection = point.includes('Resistor');
+      const isSensorConnection = point.includes('Resistive Sensor');
+      const isDHT11Connection = point.includes('DHT11');
       
       // Parse the text to separate the pin identifier from descriptions
       let displayComponents = [];
       
-      if (isGroundPin) {
+              if (point.includes('+ → 3V')) {
+          displayComponents.push(
+            <View key="power-container" style={styles.pinPointRow}>
+              <View style={styles.dht11Pin}>
+                <Text style={styles.pinText}>+</Text>
+              </View>
+              <Text style={styles.pointText}> → </Text>
+              <View style={styles.vccPin}>
+                <Text style={styles.pinText}>3V</Text>
+              </View>
+            </View>
+          );
+        } else if (point.includes('OUT → D1')) {
+          displayComponents.push(
+            <View key="data-container" style={styles.pinPointRow}>
+              <View style={styles.dht11Pin}>
+                <Text style={styles.pinText}>OUT</Text>
+              </View>
+              <Text style={styles.pointText}> → </Text>
+              <View style={styles.dataPin}>
+                <Text style={styles.pinText}>D1</Text>
+              </View>
+            </View>
+          );
+        } else if (point.includes('- → GND')) {
+          displayComponents.push(
+            <View key="ground-container" style={styles.pinPointRow}>
+              <View style={styles.dht11Pin}>
+                <Text style={styles.pinText}>-</Text>
+              </View>
+              <Text style={styles.pointText}> → </Text>
+              <View style={styles.gndPin}>
+                <Text style={styles.pinText}>GND</Text>
+              </View>
+            </View>
+          );
+        } else if (isSensorConnection) {
+          // Handle "Resistive Sensor → 3V and A0"
+          displayComponents.push(
+            <View key="sensor-container" style={styles.pinPointRow}>
+              <Text style={styles.pointText}>Resistive Sensor → </Text>
+              <View style={styles.vccPin}>
+                <Text style={styles.pinText}>3V</Text>
+              </View>
+              <Text style={styles.pointText}> and </Text>
+              <View style={styles.analogPin}>
+                <Text style={styles.pinText}>A0</Text>
+              </View>
+            </View>
+          );
+      } else if (isResistorConnection) {
+        // Handle "10kΩ Resistor → GND and A0"
+        displayComponents.push(
+          <View key="resistor-container" style={styles.pinPointRow}>
+            <Text style={styles.pointText}>10kΩ Resistor → </Text>
+            <View style={styles.gndPin}>
+              <Text style={styles.pinText}>GND</Text>
+            </View>
+            <Text style={styles.pointText}> and </Text>
+            <View style={styles.analogPin}>
+              <Text style={styles.pinText}>A0</Text>
+            </View>
+          </View>
+        );
+      } else if (isGroundPin) {
         if (point.includes('G (Ground)')) {
           // First step - ground pin identification
           displayComponents.push(
@@ -184,17 +287,17 @@ export default function ConnectionStepsScreen() {
           );
         }
       } else if (isDataPin) {
-        if (point.includes('D4 (Digital I/O for DHT11)')) {
+        if (point.includes('D1 (Digital I/O)')) {
           // First step - digital pin identification
           displayComponents.push(
             <View key="data-container" style={styles.pinPointRow}>
               <View style={styles.dataPin}>
-                <Text style={styles.pinText}>D4</Text>
+                <Text style={styles.pinText}>D1</Text>
               </View>
-              <Text style={styles.pointText}> (Digital I/O for DHT11)</Text>
+              <Text style={styles.pointText}> (Digital I/O)</Text>
             </View>
           );
-        } else if (point.includes('DATA → D4')) {
+        } else if (point.includes('DATA → D1')) {
           // Connection steps - with arrow
           const parts = point.split('→');
           displayComponents.push(
@@ -202,7 +305,7 @@ export default function ConnectionStepsScreen() {
               <Text style={styles.pointText}>{parts[0].trim()}</Text>
               <Text style={styles.pointText}> → </Text>
               <View style={styles.dataPin}>
-                <Text style={styles.pinText}>D4</Text>
+                <Text style={styles.pinText}>D1</Text>
               </View>
             </View>
           );
@@ -241,7 +344,7 @@ export default function ConnectionStepsScreen() {
         <Text style={styles.stepDescription}>{step.description}</Text>
         
         <View style={styles.pointsContainer}>
-          {step.points.map((point, index) => renderPinPoint(point, index))}
+          {step.points?.map((point, index) => renderPinPoint(point, index))}
         </View>
       </View>
     );
@@ -499,28 +602,46 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    marginRight: 6,
+    marginHorizontal: 6,
+    minWidth: 60,
+    alignItems: 'center',
   },
   gndPin: {
     backgroundColor: '#000000',
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    marginRight: 6,
+    marginHorizontal: 6,
+    minWidth: 60,
+    alignItems: 'center',
   },
   dataPin: {
     backgroundColor: '#FFCC00',
+    color:'#000000',
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    marginRight: 6,
+    marginHorizontal: 6, 
+    minWidth: 60,
+    alignItems: 'center',
   },
   analogPin: {
     backgroundColor: '#007AFF',
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    marginRight: 6,
+    marginHorizontal: 6,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  dht11Pin: {
+    backgroundColor: '#05a4ff',
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginHorizontal: 6,
+    minWidth: 60,
+    alignItems: 'center',
   },
   formattedPointText: {
     flexDirection: 'row',
@@ -535,5 +656,68 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'white',
     fontWeight: 'bold',
+  },
+  // Components grid styles
+  componentsGrid: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 10,
+  },
+  componentCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+    width: '48%',
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  componentImage: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
+  },
+  componentName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: ColorPalette.white,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  componentDescription: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  // Circuit diagram styles
+  circuitDiagramContainer: {
+    width: '100%',
+    marginTop: 20,
+  },
+  circuitDiagramTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: ColorPalette.white,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  circuitDiagramBox: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 8,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  circuitDiagramText: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : Platform.OS === 'android' ? 'monospace' : 'Courier',
+    fontSize: 12,
+    color: '#00ff00',
+    lineHeight: 16,
+    textAlign: 'left',
   },
 }); 

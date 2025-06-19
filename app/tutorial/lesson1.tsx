@@ -3,30 +3,30 @@ import { Colors as ColorPalette } from '@/constants/Colors';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    Platform,
-    Pressable,
-    RefreshControl,
-    Animated as RNAnimated,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  ActivityIndicator,
+  Image,
+  Platform,
+  Pressable,
+  RefreshControl,
+  Animated as RNAnimated,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import Animated, {
-    FadeInDown,
-    FadeOut
+  FadeInDown,
+  FadeOut
 } from 'react-native-reanimated';
 
 // Import centralized ESP utilities from lib index
 import {
-    analogToMoisture,
-    fetchAllSensorData,
-    getEspBaseUrl
+  analogToMoisture,
+  fetchAllSensorData,
+  getEspBaseUrl
 } from '@/lib';
 
 // Lesson 1 steps
@@ -231,6 +231,101 @@ const ESPDataVisualizer = ({ onConnected, demoMode: initialDemoMode = false }: {
   );
 };
 
+// ESP Connection Step with looping animation
+const ESPConnectionStep = () => {
+  const [currentImage, setCurrentImage] = useState(0); // 0 for 3.png, 1 for 33.png
+  const fadeAnim = useRef(new RNAnimated.Value(1)).current;
+  
+  useEffect(() => {
+    const startAnimation = () => {
+      // Fade out
+      RNAnimated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start(() => {
+        // Switch image and title
+        setCurrentImage(prev => prev === 0 ? 1 : 0);
+        
+        // Fade in
+        RNAnimated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }).start(() => {
+          // Wait 2 seconds before starting next cycle
+          setTimeout(startAnimation, 2000);
+        });
+      });
+    };
+    
+    // Start the animation after 2 seconds
+    const timeout = setTimeout(startAnimation, 2000);
+    
+    return () => clearTimeout(timeout);
+  }, [fadeAnim]);
+  
+  const images = [
+    require('@/assets/sections/lesson-1/3.png'),
+    require('@/assets/sections/lesson-1/33.png')
+  ];
+  
+  const titles = [
+    'Connect Your ESP Unit',
+    'Turn on your board'
+  ];
+  
+  // Different styles for each image
+  const imageStyles = [
+    styles.espConnectionImage, // Default style for 3.png
+    styles.espConnectionImageCentered // Centered style for 33.png
+  ];
+  
+  return (
+    <>
+      <RNAnimated.View style={[styles.espImageContainer, { opacity: fadeAnim }]}>
+        <Image 
+          source={images[currentImage]}
+          style={imageStyles[currentImage]}
+          resizeMode="contain"
+        />
+      </RNAnimated.View>
+      
+      <RNAnimated.View style={{ opacity: fadeAnim }}>
+        <Text style={styles.stepTitle}>
+          {titles[currentImage]}
+        </Text>
+        <Text style={styles.stepDescription}>
+          To begin using your soil moisture sensor, power up your device:
+        </Text>
+      </RNAnimated.View>
+      
+      <View style={styles.instructionsContainer}>
+        <View style={styles.instructionItem}>
+          <View style={styles.instructionNumber}>
+            <Text style={styles.instructionNumberText}>1</Text>
+          </View>
+          <Text style={styles.instructionText}>Power on your ESP unit (USB cable or batteries)</Text>
+        </View>
+        
+        <View style={styles.instructionItem}>
+          <View style={styles.instructionNumber}>
+            <Text style={styles.instructionNumberText}>2</Text>
+          </View>
+          <Text style={styles.instructionText}>If using batteries, flip the power switch to ON</Text>
+        </View>
+        
+        <View style={styles.instructionItem}>
+          <View style={styles.instructionNumber}>
+            <Text style={styles.instructionNumberText}>3</Text>
+          </View>
+          <Text style={styles.instructionText}>Verify the power LED indicator is illuminated</Text>
+        </View>
+      </View>
+    </>
+  );
+};
+
 // Simplified final step component that doesn't use hooks
 const SimplifiedLastStep = ({ onNextPress }: { onNextPress: () => void }) => {
   return (
@@ -365,40 +460,7 @@ export default function Lesson1Screen() {
         stepContent = renderOptionsCards();
         break;
       case 1:
-        stepContent = (
-          <>
-            <View style={styles.espImageContainer}>
-              <Image 
-                source={require('@/assets/sections/lesson-1/3.png')}
-                style={styles.espConnectionImage}
-                resizeMode="contain"
-              />
-            </View>
-            {headerContent}
-            <View style={styles.instructionsContainer}>
-              <View style={styles.instructionItem}>
-                <View style={styles.instructionNumber}>
-                  <Text style={styles.instructionNumberText}>1</Text>
-                </View>
-                <Text style={styles.instructionText}>Power on your ESP unit (USB cable or batteries)</Text>
-              </View>
-              
-              <View style={styles.instructionItem}>
-                <View style={styles.instructionNumber}>
-                  <Text style={styles.instructionNumberText}>2</Text>
-                </View>
-                <Text style={styles.instructionText}>If using batteries, flip the power switch to ON</Text>
-              </View>
-              
-              <View style={styles.instructionItem}>
-                <View style={styles.instructionNumber}>
-                  <Text style={styles.instructionNumberText}>3</Text>
-                </View>
-                <Text style={styles.instructionText}>Verify the power LED indicator is illuminated</Text>
-              </View>
-            </View>
-          </>
-        );
+        stepContent = <ESPConnectionStep />;
         break;
       case 2:
         stepContent = (
@@ -478,9 +540,9 @@ export default function Lesson1Screen() {
               style={[styles.cardImage]} 
               resizeMode="contain"
             />
-            <Text style={styles.cardTitle}>Help Me with Connection</Text>
+            <Text style={styles.cardTitle}>I'm building from scratch</Text>
             <Text style={styles.cardDescription}>
-              Get step-by-step guidance on how to set up and connect your ESP8266 sensor unit
+              Get a step-by-step guide on how to set up your own soil moisture sensor
             </Text>
           </View>
         </Pressable>
@@ -501,7 +563,7 @@ export default function Lesson1Screen() {
               style={styles.cardImage} 
               resizeMode="contain"
             />
-            <Text style={styles.cardTitle}>My ESP Unit is Ready</Text>
+            <Text style={styles.cardTitle}>My board's already assembled</Text>
             <Text style={styles.cardDescription}>
               Start the tutorial with your ESP8266 already connected and powered
             </Text>
@@ -923,7 +985,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
-    height: 150,
+    height: 190,
     backgroundColor: 'transparent',
     padding: 5,
     marginTop: 15,
@@ -1003,6 +1065,12 @@ const styles = StyleSheet.create({
     height: 180,
     marginLeft: -60, // Pull image to the left edge
     transformOrigin: 'left center',
+  },
+  espConnectionImageCentered: {
+    width: '80%', 
+    height: 180,
+    alignSelf: 'center', // Center the image instead of pulling left
+    transformOrigin: 'center center',
   },
   instructionsContainer: {
     width: '100%',

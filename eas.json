@@ -31,15 +31,13 @@
       },
       "ios": {
         "resourceClass": "m1-medium"
-      },
-      "resourceClass": "large"
+      }
     },
     "androidApk": {
       "extends": "production",
       "android": {
         "buildType": "apk"
-      },
-      "resourceClass": "large"
+      }
     },
     "optimizedApk": {
       "extends": "androidApk",
@@ -51,7 +49,6 @@
       },
       "distribution": "store",
       "autoIncrement": true,
-      "resourceClass": "large",
       "env": {
         "APP_VARIANT": "optimized"
       }
@@ -60,13 +57,11 @@
       "extends": "production",
       "android": {
         "buildType": "app-bundle"
-      },
-      "resourceClass": "large"
+      }
     },
     "ios-testflight": {
       "distribution": "store",
       "ios": {
-        "resourceClass": "large",
         "simulator": false,
         "autoIncrement": true
       },
@@ -78,7 +73,6 @@
     "ios-appstore": {
       "distribution": "store",
       "ios": {
-        "resourceClass": "large",
         "simulator": false,
       "autoIncrement": true
       },
